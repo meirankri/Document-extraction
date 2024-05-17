@@ -17,5 +17,5 @@
     }
   },
   "include": ["/**/*.ts", "index.ts"],
-  "exclude": ["node_modules", "src/**/*.spec.ts"]
+  "exclude": ["node_modules", "src/**/*.spec.ts", "dist/**/*.spec.ts"]
 }
