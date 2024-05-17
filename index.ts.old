@@ -1,0 +1,43 @@
+const express = require("express");
+const app = express();
+const multer = require("multer");
+const dotenv = require("dotenv");
+
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+
+type DestinationCallback = (error: Error | null, destination: string) => void;
+type FileNameCallback = (error: Error | null, filename: string) => void;
+
+const storage = multer.diskStorage({
+  destination: (request: Request, file: {}, cb: DestinationCallback) => {
+    cb(null, process.env.UPLOAD_FOLDER || "dist/uploads");
+  },
+  filename: (
+    req: Request,
+    file: { originalname: string },
+    cb: FileNameCallback
+  ) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const upload = multer({ storage: storage }).array("files");
+
+app.get("/", (req: any, res: any) => {
+  res.send("Hello World en ts");
+});
+
+app.post("/upload", async (req: any, res: any) => {
+  console.log("Uploading files");
+
+  upload(req, res, async (err: any) => {
+    if (err) {
+      return res.status(500).send;
+    }
+  });
+
+  res.send("Files uploaded");
+});
+
+app.listen(8080, () => {
+  console.log("Server is running on http://localhost:8080");
+});
