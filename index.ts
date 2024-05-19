@@ -1,13 +1,11 @@
 import express, { Request, Response } from "express";
-import multer from "multer";
-import path from "path";
 import dotenv from "dotenv";
+import { File as FileType } from "@google-cloud/storage";
 
-// Configurer dotenv pour charger le fichier .env en fonction de NODE_ENV
+import FileUseCase from "./usecase/File";
+import { uploadMultiple } from "./libs/multer";
+import FirebaseStorage from "./services/FirebaseStorage";
 
-import StorageService from "./services/FSStorageService";
-import File from "./usecase/File";
-import { roundNumber } from "./utils/number";
 // import RoundNumberChecker from '../utils/roundNumberChecker';
 // import FileProcessor from '../services/FileProcessor';
 // import DataExtractor from '../services/DataExtractor';
@@ -17,41 +15,62 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const app = express();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, process.env.UPLOAD_FOLDER || "dist/uploads");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-const upload = multer({ storage: storage }).array("files");
-app.get("/", () => {
-  console.log(process.env);
-});
-app.post("/upload", async (req: Request, res: Response) => {
-  console.log("Uploading files");
+app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
 
-  upload(req, res, async (err) => {
-    if (err) {
-      console.log(err);
+app.get("/", async () => {
+  console.log("Hello World");
+});
 
-      return res.status(500).send(err);
-    }
-  });
-  const storageService = new StorageService(
-    path.join(__dirname, process.env.UPLOAD_FOLDER || "")
-  );
-  const file = new File(storageService);
+const firebaseFolder = "documents";
+app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
   let response: object = {};
 
-  const numberOfFiles = await file.getNumberOfFiles();
-  if (!numberOfFiles) {
-    response = { error: "No files found" };
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).send("No files uploaded.");
   }
-  const roundedNumber = roundNumber(numberOfFiles);
-  if (!roundedNumber) response = { message: "files is under 10" };
-  else response = { message: numberOfFiles };
+  const files = req.files as Express.Multer.File[];
+  const firebaseRepository = new FirebaseStorage();
+  const fileUseCase = new FileUseCase(firebaseRepository);
+  let fileFromFirebase: File[] | FileType[];
+  try {
+    await fileUseCase.filesUpload(files, firebaseFolder);
+    fileFromFirebase = await fileUseCase.getFiles(firebaseFolder);
+  } catch (error) {
+    fileFromFirebase = [];
+    response = { error: "Error uploading files" };
+  }
+  const numberOfFiles = fileUseCase.getNumberOfFiles(fileFromFirebase);
+  if (!numberOfFiles) {
+    response = { message: "files count is under ten" };
+  }
+  {
+    // suite du script
+  }
+
+  // try {
+  //   const filesPromises: Promise<string>[] = [];
+  //   files.forEach(async (file) => {
+  //     filesPromises.push(uploadFileToFirebase(file));
+  //   });
+  //   const filesUrls = await Promise.all(filesPromises);
+  //   console.log("names", filesUrls);
+  // } catch (error) {
+  //   console.error("error bulk upload", error);
+  // }
+
+  // const storageService = new StorageService(
+  //   path.join(__dirname, process.env.UPLOAD_FOLDER || "")
+  // );
+  // const file = new File(storageService);
+
+  // const numberOfFiles = await file.getNumberOfFiles();
+  // if (!numberOfFiles) {
+  //   response = { error: "No files found" };
+  // }
+  // const roundedNumber = roundNumber(numberOfFiles);
+  // if (!roundedNumber) response = { message: "files is under 10" };
+  // else response = { message: numberOfFiles };
   // const files = req.files as Express.Multer.File[];
 
   // for (const file of files) {

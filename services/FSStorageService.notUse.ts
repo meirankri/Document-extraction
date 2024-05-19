@@ -1,10 +1,10 @@
+import { File } from "@google-cloud/storage";
 import { StorageRepository } from "../types/interfaces";
 import fs from "fs";
 import path from "path";
 
-class FSStorageService implements StorageRepository {
+class FSStorageService {
   constructor(private readonly storagePath: string) {}
-
   async getNumberOfFiles(): Promise<number> {
     try {
       const files = await fs.promises.readdir(this.storagePath);
