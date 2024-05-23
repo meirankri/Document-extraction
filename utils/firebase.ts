@@ -35,15 +35,40 @@ export const deleteFile = async (filePath: string): Promise<string> => {
   }
 };
 
-export const getAllFiles = async (folder: string): Promise<File[] | []> => {
+export const getFile = (name: string, folder: string): File | null => {
+  try {
+    return bucket.file(`${folder}/${name}`);
+  } catch (error) {
+    console.error("Failed to retrieve file:", error);
+    return null;
+  }
+};
+
+export const getAllFiles = async (
+  folder: string,
+  sortedFunction?: Function
+): Promise<File[] | []> => {
   try {
     const [files] = await bucket.getFiles({
       prefix: folder,
     });
+    if (!sortedFunction) return files || [];
 
-    return files || [];
+    return sortedFunction(files) || [];
   } catch (error) {
     console.error("Failed to retrieve files:", error);
     return [];
   }
+};
+
+export const sortFilesByDate = (
+  files: File[],
+  order: "desc" | "asc" = "asc"
+): File[] => {
+  return files.sort((a, b) => {
+    const timeA = a.metadata.timeCreated ?? new Date(0).toISOString();
+    const timeB = b.metadata.timeCreated ?? new Date(0).toISOString();
+
+    return order === "asc" ? (timeA < timeB ? -1 : 1) : timeA > timeB ? -1 : 1;
+  });
 };

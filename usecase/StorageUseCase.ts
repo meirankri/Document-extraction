@@ -1,16 +1,23 @@
-import { File as FileType } from "@google-cloud/storage";
 import { roundNumber } from "../utils/number";
-import { StorageRepository } from "../types/interfaces";
+import { StorageRepository, UploadedFiles } from "../types/interfaces";
 
-class FileUseCase {
+class StorageUseCase {
   constructor(private readonly storageRepository: StorageRepository) {}
 
-  async getFiles(folder: string): Promise<FileType[] | File[] | []> {
+  getFiles(folder: string): Promise<UploadedFiles> {
     return this.storageRepository.getAllFiles(folder);
   }
 
-  getNumberOfFiles(files: FileType[] | File[] | []): number | null {
+  getNumberOfFiles(files: UploadedFiles): number | null {
     return roundNumber(files.length);
+  }
+
+  getFile(name: string, folder: string) {
+    return this.storageRepository.getFile(name, folder);
+  }
+
+  getOldestFilesByNumber(files: UploadedFiles, number: number) {
+    return files.slice(0, number);
   }
 
   async filesUpload(files: Express.Multer.File[], folder: string) {
@@ -27,4 +34,4 @@ class FileUseCase {
   }
 }
 
-export default FileUseCase;
+export default StorageUseCase;

@@ -1,19 +1,24 @@
-import { File as GoogleFile } from "@google-cloud/storage";
-
 import {
   getAllFiles as firebaseGetAllFiles,
   uploadFile,
+  getFile,
+  sortFilesByDate,
 } from "../utils/firebase";
-import { StorageRepository } from "./../types/interfaces";
+import {
+  FileFromUpload,
+  StorageRepository,
+  UploadedFile,
+  UploadedFiles,
+} from "./../types/interfaces";
 
 class FirebaseStorage implements StorageRepository {
-  getAllFiles(folder: string): Promise<File[] | GoogleFile[] | []> {
-    return firebaseGetAllFiles(folder);
+  getFile(name: string, folder: string): UploadedFile {
+    return getFile(name, folder);
   }
-  addFile(file: Express.Multer.File): Promise<string> {
-    throw new Error("Method not implemented.");
+  getAllFiles(folder: string): Promise<UploadedFiles> {
+    return firebaseGetAllFiles(folder, sortFilesByDate);
   }
-  uploadFile(file: Express.Multer.File, folder: string): Promise<string> {
+  uploadFile(file: FileFromUpload, folder: string): Promise<string> {
     return uploadFile(file, folder);
   }
 }

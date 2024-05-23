@@ -1,11 +1,13 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-import { File as FileType } from "@google-cloud/storage";
 
-import FileUseCase from "./usecase/File";
+import StorageUseCase from "./usecase/StorageUseCase";
 import { uploadMultiple } from "./libs/multer";
 import FirebaseStorage from "./services/FirebaseStorage";
-
+import { FileFromUpload, UploadedFiles } from "types/interfaces";
+import FirebaseFilePdfRepository from "./services/FirebaseFilePdfRepository";
+import FileUseCase from "./usecase/FileUseCase";
+import { processDocument } from "./utils/documentAi";
 // import RoundNumberChecker from '../utils/roundNumberChecker';
 // import FileProcessor from '../services/FileProcessor';
 // import DataExtractor from '../services/DataExtractor';
@@ -29,23 +31,31 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
   }
-  const files = req.files as Express.Multer.File[];
+  const files = req.files as FileFromUpload[];
   const firebaseRepository = new FirebaseStorage();
-  const fileUseCase = new FileUseCase(firebaseRepository);
-  let fileFromFirebase: File[] | FileType[];
+  const storageUseCase = new StorageUseCase(firebaseRepository);
+  let fileFromFirebase: UploadedFiles;
   try {
-    await fileUseCase.filesUpload(files, firebaseFolder);
-    fileFromFirebase = await fileUseCase.getFiles(firebaseFolder);
+    await storageUseCase.filesUpload(files, firebaseFolder);
+    fileFromFirebase = await storageUseCase.getFiles(firebaseFolder);
   } catch (error) {
     fileFromFirebase = [];
     response = { error: "Error uploading files" };
   }
-  const numberOfFiles = fileUseCase.getNumberOfFiles(fileFromFirebase);
+
+  const numberOfFiles = storageUseCase.getNumberOfFiles(fileFromFirebase);
+
   if (!numberOfFiles) {
     response = { message: "files count is under ten" };
-  }
-  {
-    // suite du script
+    res.json(response);
+  } else {
+    const pdfFileRepository = new FirebaseFilePdfRepository();
+    const fileUseCase = new FileUseCase(pdfFileRepository, fileFromFirebase);
+    const pdfBytes = await fileUseCase.handleFiles(numberOfFiles);
+    await processDocument(pdfBytes);
+    res.setHeader("Content-Disposition", 'attachment; filename="download.pdf"');
+    res.setHeader("Content-Type", "application/pdf");
+    res.send(Buffer.from(pdfBytes));
   }
 
   // try {
@@ -91,7 +101,7 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
   //   }
   // }
 
-  res.json(response);
+  // res.json(response);
 });
 
 const PORT = process.env.PORT || 8080;
