@@ -1,15 +1,21 @@
 import { File } from "@google-cloud/storage";
 
 import { bucket } from "../libs/firebase";
+import { FileInfos } from "../types/interfaces";
+import { removeExtension } from "./format";
 
 export const uploadFile = (
-  file: Express.Multer.File,
+  file: { file: Buffer; fileInfos: FileInfos },
   folder: string
 ): Promise<string> => {
-  const fileRef = bucket.file(`${folder}/${Date.now()}-${file.originalname}`);
+  const fileRef = bucket.file(
+    `${folder}/${Date.now()}-${removeExtension(file.fileInfos.filename)}.${
+      file.fileInfos.ext
+    }`
+  );
   const blobStream = fileRef.createWriteStream({
     metadata: {
-      contentType: file.mimetype,
+      contentType: file.fileInfos.mimetype,
       cacheControl: "public, max-age=31536000",
     },
   });
@@ -19,10 +25,10 @@ export const uploadFile = (
       .on("error", (error: Error) =>
         reject({ message: "error with firebase upload", error, file })
       )
-      .on("finish", () => {
-        resolve(`File uploaded successfully: ${file.originalname}`);
+      .on("finish", async () => {
+        resolve("File uploaded successfully.");
       })
-      .end(file.buffer);
+      .end(file.file);
   });
 };
 
@@ -44,13 +50,19 @@ export const getFile = (name: string, folder: string): File | null => {
   }
 };
 
-export const getAllFiles = async (
-  folder: string,
-  sortedFunction?: Function
-): Promise<File[] | []> => {
+export const getAllFiles = async ({
+  folder,
+  maxResults,
+  sortedFunction,
+}: {
+  folder: string;
+  maxResults?: number;
+  sortedFunction?: (files: File[]) => File[];
+}): Promise<File[] | []> => {
   try {
     const [files] = await bucket.getFiles({
       prefix: folder,
+      maxResults,
     });
     if (!sortedFunction) return files || [];
 

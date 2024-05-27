@@ -5,20 +5,27 @@ import {
   sortFilesByDate,
 } from "../utils/firebase";
 import {
-  FileFromUpload,
+  FileInfos,
   StorageRepository,
   UploadedFile,
   UploadedFiles,
-} from "./../types/interfaces";
+} from "../types/interfaces";
 
 class FirebaseStorage implements StorageRepository {
   getFile(name: string, folder: string): UploadedFile {
     return getFile(name, folder);
   }
-  getAllFiles(folder: string): Promise<UploadedFiles> {
-    return firebaseGetAllFiles(folder, sortFilesByDate);
+  getAllFiles(folder: string, numberOfFiles?: number): Promise<UploadedFiles> {
+    return firebaseGetAllFiles({
+      folder,
+      maxResults: numberOfFiles,
+      sortedFunction: sortFilesByDate,
+    });
   }
-  uploadFile(file: FileFromUpload, folder: string): Promise<string> {
+  uploadFile(
+    file: { file: Buffer; fileInfos: FileInfos },
+    folder: string
+  ): Promise<string> {
     return uploadFile(file, folder);
   }
 }

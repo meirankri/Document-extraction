@@ -1,6 +1,6 @@
-import fs from "fs/promises";
 import { DocumentProcessorServiceClient } from "@google-cloud/documentai";
 import dotenv from "dotenv";
+import { DocumentAiDocument, PDF } from "../types/interfaces";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
@@ -21,7 +21,9 @@ const client = new DocumentProcessorServiceClient({
   projectId: cred.project,
 });
 
-export const processDocument = async (file: Buffer | Uint8Array) => {
+export const processDocument = async (
+  file: PDF
+): Promise<DocumentAiDocument | null | undefined> => {
   const projectId = cred.processorProjectId || "";
   const location = "eu"; // par exemple 'us' ou 'europe'
   const processorId = cred.processor || "";
@@ -45,7 +47,9 @@ export const processDocument = async (file: Buffer | Uint8Array) => {
 
     // Affichez les résultats
     console.log("Document Text:", JSON.stringify(document?.entities));
+    return document;
   } catch (error) {
     console.log("docuemnt ai error", error);
+    return null;
   }
 };

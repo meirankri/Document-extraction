@@ -2,6 +2,7 @@ import {
   UploadedFiles,
   UploadedFile,
   IFileRepository,
+  FirebaseFile,
 } from "../types/interfaces";
 
 class FileUseCase {
@@ -30,11 +31,28 @@ class FileUseCase {
     return this.fileRepository.createPdf(files);
   }
 
-  async handleFiles(numberOfFile: number) {
+  async checkIfItsScanned(): Promise<{
+    scannedPdfs: UploadedFile[];
+    notScannedPdfs: UploadedFile[];
+  }> {
+    const scannedPdfs = [];
+    const notScannedPdfs = [];
+    for await (const file of this.files) {
+      const isScanned = await this.fileRepository.isReadblePDF(file);
+      if (isScanned) {
+        scannedPdfs.push(file);
+      } else if (!isScanned) {
+        notScannedPdfs.push(file);
+      }
+    }
+    return { scannedPdfs, notScannedPdfs };
+  }
+
+  async handleMultipleFiles(): Promise<
+    { file: Buffer | Uint8Array; contentType: string }[]
+  > {
     const pdfToAnalyse = [];
-    // document ai cannot process more than 10 pages at a time
-    const fileToAnalyse = this.files.slice(0, 10);
-    for await (const file of fileToAnalyse) {
+    for await (const file of this.files) {
       const isAPDF = this.checkIfItIsAPDF(file);
       if (isAPDF) {
         const _file = await this.extractFirstPage(file);
@@ -46,6 +64,11 @@ class FileUseCase {
         pdfToAnalyse.push(infos);
       }
     }
+    return pdfToAnalyse;
+  }
+
+  async handleFiles() {
+    const pdfToAnalyse = await this.handleMultipleFiles();
     return this.createPdf(pdfToAnalyse);
   }
 }

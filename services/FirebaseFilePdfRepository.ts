@@ -1,12 +1,41 @@
 import { PDFDocument } from "pdf-lib";
 
 import {
+  FileFromUpload,
   FirebaseFile,
   IFileRepository,
+  PDF,
   UploadedFile,
 } from "../types/interfaces";
+import {
+  imageToPdf,
+  convertDocxToPdf,
+  checkIfPdfIsScanned,
+} from "../utils/pdfLib";
 
 class FirebaseFilePdfRepository implements IFileRepository {
+  async isReadblePDF(file: UploadedFile): Promise<boolean> {
+    return this.fileToBuffer(file).then((buffer) => {
+      return checkIfPdfIsScanned(buffer);
+    });
+  }
+  async fileToPDF(file: FileFromUpload): Promise<Buffer | null> {
+    if (file.mimetype === "application/pdf") {
+      return file.buffer;
+    }
+    let pdfFile;
+    if (file.mimetype.startsWith("image")) {
+      pdfFile = await imageToPdf(file);
+    }
+    if (
+      file.mimetype ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      pdfFile = await convertDocxToPdf(file);
+    }
+    return pdfFile ? Buffer.from(pdfFile) : null;
+  }
+
   async extractFirstPage(file: UploadedFile): Promise<Buffer | Uint8Array> {
     const buffer = await this.fileToBuffer(file);
 
@@ -19,9 +48,10 @@ class FirebaseFilePdfRepository implements IFileRepository {
     return pdfByte;
   }
 
-  async fileToBuffer(file: UploadedFile): Promise<Uint8Array> {
+  async fileToBuffer(file: UploadedFile): Promise<Buffer> {
     const [buffer] = await (file as FirebaseFile).download();
-    return buffer;
+
+    return Buffer.from(buffer);
   }
 
   checkIfItIsAPDF(file: FirebaseFile): boolean {
