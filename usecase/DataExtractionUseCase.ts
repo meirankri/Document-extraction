@@ -1,15 +1,26 @@
 import {
   DataExtracted,
   ExtractDataArgument,
+  FileWithInfo,
   IDataExtractionRepository,
   PDF,
+  PatientInfo,
+  UploadedFile,
+  UploadedFiles,
 } from "../types/interfaces";
 
 class DataExtractionUseCase {
   constructor(private dataExtractionRepository: IDataExtractionRepository) {}
 
-  async extractData(documents: ExtractDataArgument): Promise<DataExtracted> {
-    return this.dataExtractionRepository.extractData(documents);
+  async extractData(pdf: PDF): Promise<DataExtracted> {
+    return this.dataExtractionRepository.handleFiles(pdf);
+  }
+
+  linkFileWithInfos(
+    files: UploadedFiles,
+    infos: PatientInfo[]
+  ): FileWithInfo[] {
+    return this.dataExtractionRepository.linkFileWithInfo(files, infos);
   }
 }
 

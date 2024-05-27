@@ -32,20 +32,29 @@ class FileUseCase {
   }
 
   async checkIfItsScanned(): Promise<{
-    scannedPdfs: UploadedFile[];
-    notScannedPdfs: UploadedFile[];
+    scannedPdfs: UploadedFiles | null;
+    notScannedPdfs: UploadedFiles;
   }> {
     const scannedPdfs = [];
     const notScannedPdfs = [];
     for await (const file of this.files) {
-      const isScanned = await this.fileRepository.isReadblePDF(file);
+      let isScanned = true;
+      try {
+        isScanned = await this.fileRepository.isReadblePDF(file);
+      } catch (error) {
+        console.error("Error checking if it is a scanned pdf.", error);
+      }
       if (isScanned) {
         scannedPdfs.push(file);
-      } else if (!isScanned) {
+      } else if (!isScanned && notScannedPdfs.length < 15) {
         notScannedPdfs.push(file);
       }
     }
-    return { scannedPdfs, notScannedPdfs };
+
+    const scannedPdfSlice =
+      scannedPdfs.length >= 10 ? scannedPdfs.slice(0, 10) : null;
+
+    return { scannedPdfs: scannedPdfSlice, notScannedPdfs };
   }
 
   async handleMultipleFiles(): Promise<

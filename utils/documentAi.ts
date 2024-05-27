@@ -1,6 +1,6 @@
 import { DocumentProcessorServiceClient } from "@google-cloud/documentai";
 import dotenv from "dotenv";
-import { DocumentAiDocument, PDF } from "../types/interfaces";
+import { DocumentAiDocument } from "../types/interfaces";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
@@ -22,16 +22,14 @@ const client = new DocumentProcessorServiceClient({
 });
 
 export const processDocument = async (
-  file: PDF
+  file: string | Uint8Array
 ): Promise<DocumentAiDocument | null | undefined> => {
   const projectId = cred.processorProjectId || "";
-  const location = "eu"; // par exemple 'us' ou 'europe'
+  const location = "eu";
   const processorId = cred.processor || "";
 
-  // Construisez l'URL du processeur
   const name = client.processorPath(projectId, location, processorId);
 
-  // Configurez la requête
   const request = {
     name,
     rawDocument: {
@@ -40,13 +38,9 @@ export const processDocument = async (
     },
   };
   // TODO il faut cleaner les informations d'entites vu qu'on peut avoir des caracteres autres comme une virgule après le nom
-  // Envoyez la requête à Document AI
   try {
     const [result] = await client.processDocument(request);
     const { document } = result;
-
-    // Affichez les résultats
-    console.log("Document Text:", JSON.stringify(document?.entities));
     return document;
   } catch (error) {
     console.log("docuemnt ai error", error);

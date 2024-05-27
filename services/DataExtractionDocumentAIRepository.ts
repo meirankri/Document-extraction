@@ -1,23 +1,31 @@
-import { protos } from "@google-cloud/documentai";
-
 import { processDocument } from "./../utils/documentAi";
 import {
   DocumentAiDocument,
   IDataExtractionRepository,
   PDF,
-  DataExtracted,
+  UploadedFiles,
+  PatientInfo,
+  FileWithInfo,
 } from "../types/interfaces";
 
 class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
-  async extractData(pdf: PDF): Promise<[DataExtracted]> {
-    const { entities } = (await processDocument(pdf)) || {};
-    const cleaData = this.extractDataFromEntities(entities);
-    // return [cleaData];
+  linkFileWithInfo(files: UploadedFiles, infos: PatientInfo[]): FileWithInfo[] {
+    const fileWithInfos: FileWithInfo[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const patientInfo = infos.filter((info) => info.page === i)[0];
+      fileWithInfos.push({ file, info: patientInfo });
+    }
+    return fileWithInfos;
+  }
+  async handleFiles(document: PDF): Promise<PatientInfo[]> {
+    const { entities } = (await processDocument(document)) || {};
+    return this.extractDataFromEntities(entities);
   }
 
   extractDataFromEntities(
     entities: DocumentAiDocument["entities"] | null | undefined
-  ) {
+  ): PatientInfo[] {
     const result: PatientInfo[] = [];
 
     entities?.forEach((item) => {
@@ -25,7 +33,7 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
       if (!pageRef) {
         return;
       }
-      const page = Number(pageRef.page) + 1;
+      const page = Number(pageRef.page);
 
       let patientInfo = result.find((info) => info.page === page);
 
@@ -36,22 +44,13 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
       if (item.mentionText) {
         switch (item.type) {
           case "patient-firstname":
-            patientInfo.firstName = {
-              value: item.mentionText.toLowerCase(),
-              confidence: item.confidence,
-            };
+            patientInfo.patientFirstname = item.mentionText.toLowerCase();
             break;
           case "patient-lastname":
-            patientInfo.lastName = {
-              value: item.mentionText.toLowerCase(),
-              confidence: item.confidence,
-            };
+            patientInfo.patientLastname = item.mentionText.toLowerCase();
             break;
           case "medical-examination":
-            patientInfo.medicalExamination = {
-              value: item.mentionText.toLowerCase(),
-              confidence: item.confidence,
-            };
+            patientInfo.medicalExamination = item.mentionText.toLowerCase();
             break;
           case "birth-date":
             let birthValue = item.mentionText.toLowerCase();
@@ -59,10 +58,7 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
               const { dateValue } = item.normalizedValue;
               birthValue = `${dateValue?.day}/${dateValue?.month}/${dateValue?.year}`;
             }
-            patientInfo.birthDate = {
-              value: birthValue,
-              confidence: item.confidence,
-            };
+            patientInfo.patientBirthDate = birthValue;
             break;
           case "date-examination":
             let examinationDateValue = item.mentionText.toLowerCase();
@@ -70,10 +66,7 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
               const { dateValue } = item.normalizedValue;
               examinationDateValue = `${dateValue?.day}/${dateValue?.month}/${dateValue?.year}`;
             }
-            patientInfo.examinationDate = {
-              value: examinationDateValue,
-              confidence: item.confidence,
-            };
+            patientInfo.examinationDate = examinationDateValue;
             break;
         }
       }
@@ -84,17 +77,3 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
 }
 
 export default DataExtractionDocumentAIRepository;
-
-interface PatientInfo {
-  page: number;
-  firstName?: stringField;
-  lastName?: stringField;
-  birthDate?: stringField;
-  medicalExamination?: stringField;
-  examinationDate?: stringField;
-}
-
-type stringField = {
-  value: string;
-  confidence: number | null | undefined;
-};

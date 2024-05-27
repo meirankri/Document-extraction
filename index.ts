@@ -7,11 +7,11 @@ import DataExtractionUseCase from "./usecase/DataExtractionUseCase";
 
 import FirebaseStorage from "./services/FirebaseStorage";
 import FirebaseFilePdfRepository from "./services/FirebaseFilePdfRepository";
-import DataExtractionGeminiRepository from "./services/DataExtractionGeminiRepository";
 
 import { uploadMultiple } from "./libs/multer";
 import { FileFromUpload, UploadedFiles } from "types/interfaces";
 import { isEmpty } from "./utils/checker";
+import DataExtractionDocumentAIRepository from "./services/DataExtractionDocumentAIRepository";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
@@ -55,7 +55,29 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
 
   const fileUseCase = new FileUseCase(pdfFileRepository, filesFromFirebase);
   const { scannedPdfs, notScannedPdfs } = await fileUseCase.checkIfItsScanned();
-  console.log(scannedPdfs, notScannedPdfs);
+  console.log("scannedPdfs", scannedPdfs);
+
+  if (!isEmpty(scannedPdfs)) {
+    const pdfFileRepository = new FirebaseFilePdfRepository();
+    const fileUseCase = new FileUseCase(
+      pdfFileRepository,
+      scannedPdfs as UploadedFiles
+    );
+    const pdfBytes = await fileUseCase.handleFiles();
+    console.log("pdf", pdfBytes);
+
+    const extractionDataRepository = new DataExtractionDocumentAIRepository();
+    const extractionData = new DataExtractionUseCase(extractionDataRepository);
+    const data = await extractionData.extractData(pdfBytes);
+    console.log("data", data);
+
+    const filesWithInfos = extractionData.linkFileWithInfos(
+      scannedPdfs as UploadedFiles,
+      data
+    );
+    console.log("ouech", filesWithInfos);
+    res.json(scannedPdfs);
+  }
 });
 
 // app.post("/uploadGen", uploadMultiple, async (req: Request, res: Response) => {

@@ -51,7 +51,7 @@ class FirebaseFilePdfRepository implements IFileRepository {
   async fileToBuffer(file: UploadedFile): Promise<Buffer> {
     const [buffer] = await (file as FirebaseFile).download();
 
-    return Buffer.from(buffer);
+    return buffer;
   }
 
   checkIfItIsAPDF(file: FirebaseFile): boolean {

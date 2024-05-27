@@ -16,6 +16,7 @@ export type DocumentAiDocument = protos.google.cloud.documentai.v1.IDocument;
 export type FileInfos = { filename: string; ext: string; mimetype: string };
 
 export type PatientInfo = {
+  page?: number;
   patientFirstname?: string;
   patientLastname?: string;
   medicalExamination?: string;
@@ -31,6 +32,8 @@ export type ExtractDataArgument = {
   file: Buffer | Uint8Array;
   contentType: string;
 }[];
+
+export type FileWithInfo = { file: UploadedFile; info: PatientInfo };
 
 export interface StorageRepository {
   getAllFiles(folder: string, numberOfFiles?: number): Promise<UploadedFiles>;
@@ -54,5 +57,6 @@ export interface IFileRepository {
 }
 
 export interface IDataExtractionRepository {
-  extractData(documents: ExtractDataArgument): Promise<DataExtracted>;
+  handleFiles(documents: PDF): Promise<PatientInfo[]>;
+  linkFileWithInfo(files: UploadedFiles, infos: PatientInfo[]): FileWithInfo[];
 }
