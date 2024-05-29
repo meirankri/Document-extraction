@@ -60,3 +60,10 @@ export interface IDataExtractionRepository {
   handleFiles(documents: PDF): Promise<PatientInfo[]>;
   linkFileWithInfo(files: UploadedFiles, infos: PatientInfo[]): FileWithInfo[];
 }
+
+export interface INotificationRepository {
+  notifyUser(
+    fileWithInfo: FileWithInfo,
+    checkingMessage: string
+  ): Promise<boolean>;
+}

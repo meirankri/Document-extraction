@@ -16,6 +16,6 @@
       "@/*": ["/*"]
     }
   },
-  "include": ["/**/*.ts", "index.ts"],
+  "include": ["/**/*.ts", "index.ts", "emailTest.js"],
   "exclude": ["node_modules", "src/**/*.spec.ts", "dist/**/*.spec.ts"]
 }

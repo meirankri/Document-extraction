@@ -12,6 +12,8 @@ import { uploadMultiple } from "./libs/multer";
 import { FileFromUpload, UploadedFiles } from "types/interfaces";
 import { isEmpty } from "./utils/checker";
 import DataExtractionDocumentAIRepository from "./services/DataExtractionDocumentAIRepository";
+import DataVerificationUseCase from "./usecase/DataVerificationUseCase";
+import EmailNotificationAWSRepository from "./services/EmailNotificationAWSRepository";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
@@ -21,7 +23,7 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 
 const firebaseFolder = "documents";
-
+// TODO comprendre pourquoi les variables ne se chargent pas dans les autres fichiers alors que j'ai bien mis dotenv.config
 app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
@@ -37,7 +39,7 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
   const pdfFiles = await storageUseCase.convertFileToPDF(files);
 
   if (isEmpty(pdfFiles)) {
-    return res.status(400).send("Error converting files to pdf.");
+    return res.status(500).send("Error converting files to pdf.");
   }
   try {
     await storageUseCase.filesUpload(pdfFiles, firebaseFolder);
@@ -50,7 +52,7 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
     filesFromFirebase = await storageUseCase.getFiles(firebaseFolder);
   } catch (error) {}
   if (isEmpty(filesFromFirebase)) {
-    return res.status(400).send("Error getting files from firebase.");
+    return res.status(500).send("Error getting files from firebase.");
   }
 
   const fileUseCase = new FileUseCase(pdfFileRepository, filesFromFirebase);
@@ -69,14 +71,27 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
     const extractionDataRepository = new DataExtractionDocumentAIRepository();
     const extractionData = new DataExtractionUseCase(extractionDataRepository);
     const data = await extractionData.extractData(pdfBytes);
-    console.log("data", data);
 
     const filesWithInfos = extractionData.linkFileWithInfos(
       scannedPdfs as UploadedFiles,
       data
     );
-    console.log("ouech", filesWithInfos);
-    res.json(scannedPdfs);
+
+    const notificationRepository = new EmailNotificationAWSRepository();
+    const verificationUseCase = new DataVerificationUseCase(
+      notificationRepository
+    );
+    let filesAndData, filesToDelete;
+    try {
+      ({ filesAndData, filesToDelete } = await verificationUseCase.verifyData(
+        filesWithInfos
+      ));
+    } catch (error) {
+      console.error("verify data as not been run", error);
+      res.status(500).send("error with the verification of the datas");
+    }
+
+    res.json(filesAndData);
   }
 });
 
