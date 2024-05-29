@@ -34,6 +34,7 @@ export type ExtractDataArgument = {
 }[];
 
 export type FileWithInfo = { file: UploadedFile; info: PatientInfo };
+export type Base64FileWithInfo = { file: string | null; info: PatientInfo };
 
 export interface StorageRepository {
   getAllFiles(folder: string, numberOfFiles?: number): Promise<UploadedFiles>;

@@ -1,8 +1,4 @@
-import { UploadedFile } from "./../types/interfaces";
 import { SESClient, SendRawEmailCommand } from "@aws-sdk/client-ses";
-import dotenv from "dotenv";
-
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const client = new SESClient({
   region: process.env.AWS_REGION,

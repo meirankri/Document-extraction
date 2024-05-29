@@ -1,6 +1,6 @@
-import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-
+dotenv.config();
+import express, { Request, Response } from "express";
 import FileUseCase from "./usecase/FileUseCase";
 import StorageUseCase from "./usecase/StorageUseCase";
 import DataExtractionUseCase from "./usecase/DataExtractionUseCase";
@@ -14,8 +14,6 @@ import { isEmpty } from "./utils/checker";
 import DataExtractionDocumentAIRepository from "./services/DataExtractionDocumentAIRepository";
 import DataVerificationUseCase from "./usecase/DataVerificationUseCase";
 import EmailNotificationAWSRepository from "./services/EmailNotificationAWSRepository";
-
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const app = express();
 
@@ -90,8 +88,10 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
       console.error("verify data as not been run", error);
       res.status(500).send("error with the verification of the datas");
     }
-
-    res.json(filesAndData);
+    if (filesAndData) {
+      const base64Files = await fileUseCase.filesToBase64(filesAndData);
+      res.json(base64Files);
+    }
   }
 });
 

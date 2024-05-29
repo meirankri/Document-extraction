@@ -1,13 +1,10 @@
 import { DocumentProcessorServiceClient } from "@google-cloud/documentai";
-import dotenv from "dotenv";
 import { DocumentAiDocument } from "../types/interfaces";
-
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const cred = {
   email: process.env.DOCUMENTAI_CLIENT_EMAIL,
   key: process.env.DOCUMENTAI_PRIVATE_KEY,
-  project: process.env.DOCUMENTAI_PROJECT_ID,
+  project: process.env.DOCUMENTAI_PROJECT_ID || "",
   processor: process.env.DOCUMENTAI_PROCESSOR_ID,
   processorProjectId: process.env.DOCUMENTAI_PROCESSOR_PROJECT_ID,
 };

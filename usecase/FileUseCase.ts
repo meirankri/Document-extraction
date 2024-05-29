@@ -1,9 +1,15 @@
+import { File as GoogleFile } from "@google-cloud/storage";
 import {
   UploadedFiles,
   UploadedFile,
   IFileRepository,
-  FirebaseFile,
+  FileWithInfo,
+  Base64FileWithInfo,
 } from "../types/interfaces";
+import {
+  convertFileToBase64,
+  convertFirebaseFileToBase64,
+} from "../utils/file";
 
 class FileUseCase {
   constructor(
@@ -29,6 +35,32 @@ class FileUseCase {
 
   createPdf(files: { file: Buffer | Uint8Array; contentType: string }[]) {
     return this.fileRepository.createPdf(files);
+  }
+
+  async filesToBase64(
+    filesWithInfo: FileWithInfo[]
+  ): Promise<Base64FileWithInfo[]> {
+    const base64Files = [];
+    for (const fileWithInfo of filesWithInfo) {
+      const file = fileWithInfo.file;
+      let base64File: string | null = null;
+      if (file instanceof GoogleFile) {
+        try {
+          base64File = await convertFirebaseFileToBase64(file);
+        } catch (error) {
+          console.error("Error converting file google file to base64", error);
+        }
+      }
+      if (file instanceof File) {
+        try {
+          base64File = await convertFileToBase64(file);
+        } catch (error) {
+          console.error("Error converting file: File to base64", error);
+        }
+      }
+      base64Files.push({ file: base64File, info: fileWithInfo.info });
+    }
+    return base64Files;
   }
 
   async checkIfItsScanned(): Promise<{
