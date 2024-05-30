@@ -21,6 +21,9 @@ FROM node:20
 
 WORKDIR /app
 
+COPY ./document-ia.json /secrets/service-account.json
+
+
 # Copier les fichiers nécessaires depuis l'étape de construction
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules

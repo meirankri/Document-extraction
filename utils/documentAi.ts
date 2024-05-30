@@ -1,10 +1,16 @@
 import { DocumentProcessorServiceClient } from "@google-cloud/documentai";
 import { DocumentAiDocument } from "../types/interfaces";
 
+const credential = JSON.parse(
+  Buffer.from(process.env.DOCUMENT_AI_SERVICE_ACCOUNT || "", "base64")
+    .toString()
+    .replace(/\n/g, "")
+);
+
 const cred = {
-  email: process.env.DOCUMENTAI_CLIENT_EMAIL,
-  key: process.env.DOCUMENTAI_PRIVATE_KEY,
-  project: process.env.DOCUMENTAI_PROJECT_ID || "",
+  email: credential.client_email,
+  key: credential.private_key.replace(/\n/g, ""),
+  project: credential.project_id || "",
   processor: process.env.DOCUMENTAI_PROCESSOR_ID,
   processorProjectId: process.env.DOCUMENTAI_PROCESSOR_PROJECT_ID,
 };
@@ -12,7 +18,7 @@ const cred = {
 const client = new DocumentProcessorServiceClient({
   credential: {
     client_email: cred.email,
-    private_key: cred?.key?.replace(/\\n/g, "\n"),
+    private_key: cred.key,
   },
   apiEndpoint: "eu-documentai.googleapis.com",
   projectId: cred.project,
