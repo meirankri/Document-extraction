@@ -1,9 +1,24 @@
 import { File as GoogleFile } from "@google-cloud/storage";
 import { protos } from "@google-cloud/documentai";
 
-export type FileFromUpload = Express.Multer.File;
+export interface EnhancedMulterFile extends Express.Multer.File {
+  type: "multer";
+}
 
-export type UploadedFile = File | GoogleFile | null;
+export type FileInfo = {
+  name: string;
+  path: string;
+  size: number;
+  isDirectory: boolean;
+  modifiedTime: Date;
+};
+export interface EnhancedFile extends FileInfo {
+  type: "file";
+}
+
+export type FileFromUpload = EnhancedMulterFile | EnhancedFile;
+
+export type UploadedFile = EnhancedFile | GoogleFile | null;
 
 export type FirebaseFile = GoogleFile;
 
@@ -52,6 +67,7 @@ export interface IFileRepository {
   contentType(file: UploadedFile): string;
   fileToPDF(file: FileFromUpload): Promise<Buffer | null>;
   isReadblePDF(file: UploadedFile): Promise<boolean>;
+  getFileInfo(file: FileFromUpload): FileInfos;
   createPdf(
     files: { file: Uint8Array | File; contentType: string }[]
   ): Promise<Uint8Array>;

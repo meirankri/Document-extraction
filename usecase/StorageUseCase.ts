@@ -7,12 +7,17 @@ import {
   StorageRepository,
   UploadedFiles,
 } from "../types/interfaces";
+import FileRepositoryFactory from "../factories/FileRepositoryFactory";
 
 class StorageUseCase {
+  private fileRepositoryFactory: typeof FileRepositoryFactory;
+
   constructor(
     private readonly storageRepository: StorageRepository,
-    private readonly fileRepository: IFileRepository
-  ) {}
+    fileRepository: typeof FileRepositoryFactory
+  ) {
+    this.fileRepositoryFactory = fileRepository;
+  }
 
   getFiles(folder: string, numberOfFiles?: number): Promise<UploadedFiles> {
     return this.storageRepository.getAllFiles(folder, numberOfFiles);
@@ -27,19 +32,19 @@ class StorageUseCase {
   ): Promise<{ file: Buffer; fileInfos: FileInfos }[]> {
     const pdfFiles = [];
     for await (const file of files) {
-      const pdf = await this.fileRepository.fileToPDF(file);
+      const pdf = await this.fileRepositoryFactory
+        .createFileRepository(file)
+        .fileToPDF(file);
       if (!pdf) {
-        // voir ce qu'il faut faire peut etre envoyer un mail avec les infos
+        //TODO voir ce qu'il faut faire peut etre envoyer un mail avec les infos
         continue;
       }
-
+      const fileInfo = this.fileRepositoryFactory
+        .createFileRepository(file)
+        .getFileInfo(file);
       pdfFiles.push({
         file: pdf,
-        fileInfos: {
-          filename: file.originalname,
-          ext: "pdf",
-          mimetype: "application/pdf",
-        },
+        fileInfos: fileInfo,
       });
     }
     return pdfFiles;

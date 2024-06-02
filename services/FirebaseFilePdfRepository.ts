@@ -1,7 +1,9 @@
 import { PDFDocument } from "pdf-lib";
 
 import {
+  EnhancedMulterFile,
   FileFromUpload,
+  FileInfos,
   FirebaseFile,
   IFileRepository,
   PDF,
@@ -14,12 +16,22 @@ import {
 } from "../utils/pdfLib";
 
 class FirebaseFilePdfRepository implements IFileRepository {
+  getFileInfo(file: EnhancedMulterFile): FileInfos {
+    return {
+      filename: file.originalname,
+      ext: file.originalname.split(".").pop() || "",
+      mimetype: file.mimetype,
+    };
+  }
   async isReadblePDF(file: UploadedFile): Promise<boolean> {
     return this.fileToBuffer(file).then((buffer) => {
       return checkIfPdfIsReadable(buffer);
     });
   }
-  async fileToPDF(file: FileFromUpload): Promise<Buffer | null> {
+  async fileToPDF(file: EnhancedMulterFile): Promise<Buffer | null> {
+    if (file.type !== "multer") {
+      throw new Error("File is not a multer file");
+    }
     if (file.mimetype === "application/pdf") {
       return file.buffer;
     }

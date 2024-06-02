@@ -4,10 +4,10 @@ import pdf from "pdf-parse";
 import { PDFDocument, PageSizes } from "pdf-lib";
 import mammoth from "mammoth";
 
-import { FileFromUpload } from "types/interfaces";
+import { EnhancedMulterFile, FileFromUpload } from "types/interfaces";
 
 export const imageToPdf = async (
-  file: FileFromUpload
+  file: EnhancedMulterFile
 ): Promise<Uint8Array | null> => {
   try {
     const pdfDoc = await PDFDocument.create();
@@ -46,11 +46,14 @@ export const imageToPdf = async (
 };
 
 export const convertDocxToPdf = async (
-  docxFile: FileFromUpload
+  docxFile: EnhancedMulterFile | Buffer
 ): Promise<Buffer | null> => {
   let htmlContent = "";
   try {
-    const result = await mammoth.convertToHtml({ buffer: docxFile.buffer });
+    let buffer;
+    if (docxFile instanceof Buffer) buffer = docxFile;
+    else buffer = docxFile.buffer;
+    const result = await mammoth.convertToHtml({ buffer });
     htmlContent = result.value;
   } catch (error) {
     console.error("Erreur lors de la conversion du DOCX en HTML:", error);

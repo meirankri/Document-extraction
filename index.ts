@@ -11,10 +11,11 @@ import FirebaseFilePdfRepository from "./services/FirebaseFilePdfRepository";
 import { uploadMultiple } from "./libs/multer";
 import { FileFromUpload, UploadedFiles } from "./types/interfaces";
 import { isEmpty } from "./utils/checker";
-import DataExtractionDocumentAIRepository from "./services/DataExtractionDocumentAIRepository";
 import DataVerificationUseCase from "./usecase/DataVerificationUseCase";
 import EmailNotificationAWSRepository from "./services/EmailNotificationAWSRepository";
 import DataExtractionGeminiRepository from "./services/DataExtractionGeminiRepository";
+import FileRepositoryFactory from "./factories/FileRepositoryFactory";
+import DataExtractionDocumentAIRepository from "./services/DataExtractionDocumentAIRepository";
 
 const app = express();
 
@@ -27,13 +28,22 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
   }
-  const files = req.files as FileFromUpload[];
+  const files =
+    (Array.isArray(req.files) &&
+      (req.files.map((file) => {
+        const type: "multer" | "file" = "multer";
+        return {
+          ...file,
+          type,
+        };
+      }) as Array<FileFromUpload>)) ||
+    [];
   const firebaseRepository = new FirebaseStorage();
   const pdfFileRepository = new FirebaseFilePdfRepository();
 
   const storageUseCase = new StorageUseCase(
     firebaseRepository,
-    pdfFileRepository
+    FileRepositoryFactory
   );
   const pdfFiles = await storageUseCase.convertFileToPDF(files);
 
@@ -57,72 +67,39 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
   const fileUseCase = new FileUseCase(pdfFileRepository, filesFromFirebase);
   const { scannedPdfs, readableScannedPdfs } =
     await fileUseCase.checkIfItsScanned();
-  console.log("scannedPdfs", scannedPdfs);
+  console.log("scannedPdfs", scannedPdfs?.length);
 
   let scannedFilesAndData, scannedFilesToDelete;
-  // if (!isEmpty(scannedPdfs)) {
-  //   const fileUseCase = new FileUseCase(
-  //     pdfFileRepository,
-  //     scannedPdfs as UploadedFiles
-  //   );
-  //   const pdfBytes = await fileUseCase.handleFiles();
-  //   console.log("pdf", pdfBytes);
-
-  //   const extractionDataRepository = new DataExtractionDocumentAIRepository();
-  //   const extractionData = new DataExtractionUseCase(extractionDataRepository);
-  //   const data = await extractionData.extractData(pdfBytes);
-
-  //   if (data) {
-  //     const filesWithInfos = extractionData.linkFileWithInfos(
-  //       scannedPdfs as UploadedFiles,
-  //       data
-  //     );
-
-  //     const notificationRepository = new EmailNotificationAWSRepository();
-  //     const verificationUseCase = new DataVerificationUseCase(
-  //       notificationRepository
-  //     );
-
-  //     try {
-  //       ({
-  //         filesAndData: scannedFilesAndData,
-  //         filesToDelete: scannedFilesToDelete,
-  //       } = await verificationUseCase.verifyData(filesWithInfos));
-  //     } catch (error) {
-  //       console.error("verify data as not been run", error);
-  //       res.status(500).send("error with the verification of the datas");
-  //     }
-  //   }
-  // }
-
-  // console.log("scanned data finish");
-
-  let readableFilesAndData, readableFilesToDelete;
-
-  if (!isEmpty(readableScannedPdfs)) {
+  if (isEmpty(scannedPdfs)) {
+    return res.status(500).send("Not enough scanned files.");
+  }
+  if (!isEmpty(scannedPdfs)) {
     const fileUseCase = new FileUseCase(
       pdfFileRepository,
-      readableScannedPdfs as UploadedFiles
+      scannedPdfs as UploadedFiles
     );
-    const multiplePdfs = await fileUseCase.handleMultipleFiles();
-    const extractionDataRepository = new DataExtractionGeminiRepository();
+    const pdfBytes = await fileUseCase.handleFiles();
+    console.log("pdf", pdfBytes);
+
+    const extractionDataRepository = new DataExtractionDocumentAIRepository();
     const extractionData = new DataExtractionUseCase(extractionDataRepository);
-    const data = await extractionData.extractData(multiplePdfs);
-    console.log("not scanned data extracted finish");
+    const data = await extractionData.extractData(pdfBytes);
 
     if (data) {
       const filesWithInfos = extractionData.linkFileWithInfos(
-        readableScannedPdfs as UploadedFiles,
+        scannedPdfs as UploadedFiles,
         data
       );
+
       const notificationRepository = new EmailNotificationAWSRepository();
       const verificationUseCase = new DataVerificationUseCase(
         notificationRepository
       );
+
       try {
         ({
-          filesAndData: readableFilesAndData,
-          filesToDelete: readableFilesToDelete,
+          filesAndData: scannedFilesAndData,
+          filesToDelete: scannedFilesToDelete,
         } = await verificationUseCase.verifyData(filesWithInfos));
       } catch (error) {
         console.error("verify data as not been run", error);
@@ -130,7 +107,43 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
       }
     }
   }
-  console.log(readableScannedPdfs);
+
+  console.log("scanned data finish");
+
+  let readableFilesAndData, readableFilesToDelete;
+
+  // if (!isEmpty(readableScannedPdfs)) {
+  //   const fileUseCase = new FileUseCase(
+  //     pdfFileRepository,
+  //     readableScannedPdfs as UploadedFiles
+  //   );
+  //   const multiplePdfs = await fileUseCase.handleMultipleFiles();
+  //   const extractionDataRepository = new DataExtractionGeminiRepository();
+  //   const extractionData = new DataExtractionUseCase(extractionDataRepository);
+  //   const data = await extractionData.extractData(multiplePdfs);
+  //   console.log("not scanned data extracted finish");
+
+  //   if (data) {
+  //     const filesWithInfos = extractionData.linkFileWithInfos(
+  //       readableScannedPdfs as UploadedFiles,
+  //       data
+  //     );
+  //     const notificationRepository = new EmailNotificationAWSRepository();
+  //     const verificationUseCase = new DataVerificationUseCase(
+  //       notificationRepository
+  //     );
+  //     try {
+  //       ({
+  //         filesAndData: readableFilesAndData,
+  //         filesToDelete: readableFilesToDelete,
+  //       } = await verificationUseCase.verifyData(filesWithInfos));
+  //     } catch (error) {
+  //       console.error("verify data as not been run", error);
+  //       res.status(500).send("error with the verification of the datas");
+  //     }
+  //   }
+  // }
+  // console.log(readableScannedPdfs);
 
   if (!isEmpty(scannedFilesAndData) || !isEmpty(readableFilesAndData)) {
     try {

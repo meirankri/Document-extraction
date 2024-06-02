@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import DataExtractionDocumentAIRepository from "../services/DataExtractionDocumentAIRepository";
 
 describe("Document AI", () => {

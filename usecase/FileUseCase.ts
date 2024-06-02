@@ -30,10 +30,6 @@ class FileUseCase {
     return this.fileRepository.contentType(file);
   }
 
-  fileToBuffer(file: UploadedFile) {
-    return this.fileRepository.fileToBuffer(file);
-  }
-
   createPdf(files: { file: Buffer | Uint8Array; contentType: string }[]) {
     return this.fileRepository.createPdf(files);
   }
@@ -99,7 +95,7 @@ class FileUseCase {
         const infos = { file: _file, contentType: this.contentType(file) };
         pdfToAnalyse.push(infos);
       } else {
-        const _file = await this.fileToBuffer(file);
+        const _file = await this.fileRepository.fileToBuffer(file);
         const infos = { file: _file, contentType: this.contentType(file) };
         pdfToAnalyse.push(infos);
       }
