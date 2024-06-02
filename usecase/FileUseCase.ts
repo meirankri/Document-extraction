@@ -5,6 +5,7 @@ import {
   IFileRepository,
   FileWithInfo,
   Base64FileWithInfo,
+  ExtractDataArgument,
 } from "../types/interfaces";
 import {
   convertFileToBase64,
@@ -65,33 +66,31 @@ class FileUseCase {
 
   async checkIfItsScanned(): Promise<{
     scannedPdfs: UploadedFiles | null;
-    notScannedPdfs: UploadedFiles;
+    readableScannedPdfs: UploadedFiles;
   }> {
     const scannedPdfs = [];
-    const notScannedPdfs = [];
+    const readableScannedPdfs = [];
     for await (const file of this.files) {
-      let isScanned = true;
+      let isReadable = true;
       try {
-        isScanned = await this.fileRepository.isReadblePDF(file);
+        isReadable = await this.fileRepository.isReadblePDF(file);
       } catch (error) {
         console.error("Error checking if it is a scanned pdf.", error);
       }
-      if (isScanned) {
+      if (!isReadable) {
         scannedPdfs.push(file);
-      } else if (!isScanned && notScannedPdfs.length < 15) {
-        notScannedPdfs.push(file);
+      } else if (isReadable && readableScannedPdfs.length < 15) {
+        readableScannedPdfs.push(file);
       }
     }
 
     const scannedPdfSlice =
       scannedPdfs.length >= 10 ? scannedPdfs.slice(0, 10) : null;
 
-    return { scannedPdfs: scannedPdfSlice, notScannedPdfs };
+    return { scannedPdfs: scannedPdfSlice, readableScannedPdfs };
   }
 
-  async handleMultipleFiles(): Promise<
-    { file: Buffer | Uint8Array; contentType: string }[]
-  > {
+  async handleMultipleFiles(): Promise<ExtractDataArgument> {
     const pdfToAnalyse = [];
     for await (const file of this.files) {
       const isAPDF = this.checkIfItIsAPDF(file);

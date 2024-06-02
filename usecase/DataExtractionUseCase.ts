@@ -12,8 +12,16 @@ import {
 class DataExtractionUseCase {
   constructor(private dataExtractionRepository: IDataExtractionRepository) {}
 
-  async extractData(pdf: PDF): Promise<DataExtracted> {
-    return this.dataExtractionRepository.handleFiles(pdf);
+  async extractData(
+    documents: PDF | ExtractDataArgument
+  ): Promise<DataExtracted | undefined> {
+    if (this.dataExtractionRepository.handleFiles) {
+      return this.dataExtractionRepository.handleFiles(documents as PDF);
+    }
+    if (this.dataExtractionRepository.handleMultipleFiles)
+      return this.dataExtractionRepository.handleMultipleFiles(
+        documents as ExtractDataArgument
+      );
   }
 
   linkFileWithInfos(

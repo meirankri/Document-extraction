@@ -96,7 +96,7 @@ export const convertDocxToPdf = async (
   }
 };
 
-export const checkIfPdfIsScanned = async (
+export const checkIfPdfIsReadable = async (
   pdfBuffer: Buffer
 ): Promise<boolean> => {
   try {

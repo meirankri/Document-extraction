@@ -9,11 +9,12 @@ import FirebaseStorage from "./services/FirebaseStorage";
 import FirebaseFilePdfRepository from "./services/FirebaseFilePdfRepository";
 
 import { uploadMultiple } from "./libs/multer";
-import { FileFromUpload, UploadedFiles } from "types/interfaces";
+import { FileFromUpload, UploadedFiles } from "./types/interfaces";
 import { isEmpty } from "./utils/checker";
 import DataExtractionDocumentAIRepository from "./services/DataExtractionDocumentAIRepository";
 import DataVerificationUseCase from "./usecase/DataVerificationUseCase";
 import EmailNotificationAWSRepository from "./services/EmailNotificationAWSRepository";
+import DataExtractionGeminiRepository from "./services/DataExtractionGeminiRepository";
 
 const app = express();
 
@@ -21,7 +22,7 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 
 const firebaseFolder = "documents";
-// TODO comprendre pourquoi les variables ne se chargent pas dans les autres fichiers alors que j'ai bien mis dotenv.config
+//TODO faire en sorte que si l'extraction de données échoue, on n'envoie pas de notif et on ne supprime pas le fichier
 app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
@@ -54,44 +55,96 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
   }
 
   const fileUseCase = new FileUseCase(pdfFileRepository, filesFromFirebase);
-  const { scannedPdfs, notScannedPdfs } = await fileUseCase.checkIfItsScanned();
+  const { scannedPdfs, readableScannedPdfs } =
+    await fileUseCase.checkIfItsScanned();
   console.log("scannedPdfs", scannedPdfs);
 
-  if (!isEmpty(scannedPdfs)) {
-    const pdfFileRepository = new FirebaseFilePdfRepository();
+  let scannedFilesAndData, scannedFilesToDelete;
+  // if (!isEmpty(scannedPdfs)) {
+  //   const fileUseCase = new FileUseCase(
+  //     pdfFileRepository,
+  //     scannedPdfs as UploadedFiles
+  //   );
+  //   const pdfBytes = await fileUseCase.handleFiles();
+  //   console.log("pdf", pdfBytes);
+
+  //   const extractionDataRepository = new DataExtractionDocumentAIRepository();
+  //   const extractionData = new DataExtractionUseCase(extractionDataRepository);
+  //   const data = await extractionData.extractData(pdfBytes);
+
+  //   if (data) {
+  //     const filesWithInfos = extractionData.linkFileWithInfos(
+  //       scannedPdfs as UploadedFiles,
+  //       data
+  //     );
+
+  //     const notificationRepository = new EmailNotificationAWSRepository();
+  //     const verificationUseCase = new DataVerificationUseCase(
+  //       notificationRepository
+  //     );
+
+  //     try {
+  //       ({
+  //         filesAndData: scannedFilesAndData,
+  //         filesToDelete: scannedFilesToDelete,
+  //       } = await verificationUseCase.verifyData(filesWithInfos));
+  //     } catch (error) {
+  //       console.error("verify data as not been run", error);
+  //       res.status(500).send("error with the verification of the datas");
+  //     }
+  //   }
+  // }
+
+  // console.log("scanned data finish");
+
+  let readableFilesAndData, readableFilesToDelete;
+
+  if (!isEmpty(readableScannedPdfs)) {
     const fileUseCase = new FileUseCase(
       pdfFileRepository,
-      scannedPdfs as UploadedFiles
+      readableScannedPdfs as UploadedFiles
     );
-    const pdfBytes = await fileUseCase.handleFiles();
-    console.log("pdf", pdfBytes);
-
-    const extractionDataRepository = new DataExtractionDocumentAIRepository();
+    const multiplePdfs = await fileUseCase.handleMultipleFiles();
+    const extractionDataRepository = new DataExtractionGeminiRepository();
     const extractionData = new DataExtractionUseCase(extractionDataRepository);
-    const data = await extractionData.extractData(pdfBytes);
+    const data = await extractionData.extractData(multiplePdfs);
+    console.log("not scanned data extracted finish");
 
-    const filesWithInfos = extractionData.linkFileWithInfos(
-      scannedPdfs as UploadedFiles,
-      data
-    );
+    if (data) {
+      const filesWithInfos = extractionData.linkFileWithInfos(
+        readableScannedPdfs as UploadedFiles,
+        data
+      );
+      const notificationRepository = new EmailNotificationAWSRepository();
+      const verificationUseCase = new DataVerificationUseCase(
+        notificationRepository
+      );
+      try {
+        ({
+          filesAndData: readableFilesAndData,
+          filesToDelete: readableFilesToDelete,
+        } = await verificationUseCase.verifyData(filesWithInfos));
+      } catch (error) {
+        console.error("verify data as not been run", error);
+        res.status(500).send("error with the verification of the datas");
+      }
+    }
+  }
+  console.log(readableScannedPdfs);
 
-    const notificationRepository = new EmailNotificationAWSRepository();
-    const verificationUseCase = new DataVerificationUseCase(
-      notificationRepository
-    );
-    let filesAndData, filesToDelete;
+  if (!isEmpty(scannedFilesAndData) || !isEmpty(readableFilesAndData)) {
     try {
-      ({ filesAndData, filesToDelete } = await verificationUseCase.verifyData(
-        filesWithInfos
-      ));
-    } catch (error) {
-      console.error("verify data as not been run", error);
-      res.status(500).send("error with the verification of the datas");
-    }
-    if (filesAndData) {
-      const base64Files = await fileUseCase.filesToBase64(filesAndData);
+      const base64Files = await fileUseCase.filesToBase64([
+        ...(scannedFilesAndData || []),
+        ...(readableFilesAndData || []),
+      ]);
       res.json(base64Files);
+    } catch (error) {
+      console.error("Error converting files to base64", error);
+      res.status(500).send("Error converting files to base64");
     }
+  } else {
+    res.status(500).send("Extraction data failed.");
   }
 });
 

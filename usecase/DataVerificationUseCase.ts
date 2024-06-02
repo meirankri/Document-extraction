@@ -63,10 +63,20 @@ class DataVerificationUseCase {
     ];
 
     for (let i = 0; i < filedsToCheck.length; i++) {
-      if (!fileWithInfo.info[filedsToCheck[i]]) return "Un champ manquant";
+      if (!fileWithInfo.info[filedsToCheck[i]]) {
+        console.log(fileWithInfo.info, "champ manquant");
+
+        return "Un champ manquant";
+      }
     }
-    if (!isValidDate(fileWithInfo.info.patientBirthDate))
+    if (!isValidDate(fileWithInfo.info.patientBirthDate)) {
+      console.log(
+        fileWithInfo.info.patientBirthDate,
+        "La date de naissance n'est pas une date"
+      );
+
       return "La date de naissance n'est pas une date";
+    }
 
     const medicalExamination = findMostSimilarExamination(
       fileWithInfo.info.medicalExamination,

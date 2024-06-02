@@ -3,14 +3,25 @@ import {
   HarmCategory,
   HarmBlockThreshold,
 } from "@google-cloud/vertexai";
+import path from "path";
+
 import { promptForDocument } from "../constants/gemini";
-import { PatientInfo } from "types/interfaces";
+import { PatientInfo } from "../types/interfaces";
+
+const jsonFilePath = path.join(
+  __dirname,
+  "..",
+  process.env.GOOGLE_APPLICATION_CREDENTIALS || ""
+);
 
 const vertex_ai = new VertexAI({
+  googleAuthOptions: {
+    credentials: require(jsonFilePath),
+  },
   project: "virtual-plexus-422613-p8",
   location: "us-central1",
 });
-const GEMINI_PRO_MODEL_NAME = "gemini-1.5-flash-preview-0514";
+const GEMINI_PRO_MODEL_NAME = "gemini-1.0-pro-vision";
 
 const safetySettings = [
   {
@@ -42,21 +53,19 @@ const generateContent = async (
   };
 
   try {
-    const streaming = await generativeModel.generateContent(request);
+    const response = await generativeModel.generateContent(request);
 
     const {
       response: { candidates = [] },
-    } = streaming;
+    } = response;
     const {
       content: { parts = [] },
     } = candidates[0];
     const [part] = parts;
     const jsonString =
-      part?.text?.replace("```json", "").replace("```", "") || "";
-    console.log(JSON.parse(jsonString));
+      part?.text?.replace("```json", "").replace("```", "") || "{}";
 
-    console.log(JSON.parse(part?.text || ""));
-    return JSON.parse(part?.text || "");
+    return JSON.parse(jsonString);
   } catch (error) {
     console.error("An error occurred during content generation:", error);
     return null;

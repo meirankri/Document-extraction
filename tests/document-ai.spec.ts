@@ -4,7 +4,6 @@ describe("Document AI", () => {
   test("it should extract data from document.entities", () => {
     const dataExtraction = new DataExtractionDocumentAIRepository();
     const result = dataExtraction.extractDataFromEntities(documentAi);
-    console.log(result);
     expect(result).toMatchSnapshot([
       {
         page: 1,

@@ -10,13 +10,13 @@ import {
 import {
   imageToPdf,
   convertDocxToPdf,
-  checkIfPdfIsScanned,
+  checkIfPdfIsReadable,
 } from "../utils/pdfLib";
 
 class FirebaseFilePdfRepository implements IFileRepository {
   async isReadblePDF(file: UploadedFile): Promise<boolean> {
     return this.fileToBuffer(file).then((buffer) => {
-      return checkIfPdfIsScanned(buffer);
+      return checkIfPdfIsReadable(buffer);
     });
   }
   async fileToPDF(file: FileFromUpload): Promise<Buffer | null> {
