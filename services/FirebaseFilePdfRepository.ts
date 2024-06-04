@@ -2,17 +2,16 @@ import { PDFDocument } from "pdf-lib";
 
 import {
   EnhancedMulterFile,
-  FileFromUpload,
   FileInfos,
   FirebaseFile,
   IFileRepository,
-  PDF,
   UploadedFile,
 } from "../types/interfaces";
 import {
   imageToPdf,
   convertDocxToPdf,
   checkIfPdfIsReadable,
+  extractPageFromPdf,
 } from "../utils/pdfLib";
 
 class FirebaseFilePdfRepository implements IFileRepository {
@@ -51,13 +50,7 @@ class FirebaseFilePdfRepository implements IFileRepository {
   async extractFirstPage(file: UploadedFile): Promise<Buffer | Uint8Array> {
     const buffer = await this.fileToBuffer(file);
 
-    const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
-    const newPdfDoc = await PDFDocument.create();
-
-    const [firstPage] = await newPdfDoc.copyPages(pdfDoc, [0]);
-    newPdfDoc.addPage(firstPage);
-    const pdfByte = await newPdfDoc.save();
-    return pdfByte;
+    return extractPageFromPdf(buffer, 1);
   }
 
   async fileToBuffer(file: UploadedFile): Promise<Buffer> {
@@ -70,7 +63,7 @@ class FirebaseFilePdfRepository implements IFileRepository {
     return file ? file.metadata.contentType === "application/pdf" : false;
   }
 
-  contentType(file: UploadedFile): string {
+  async contentType(file: UploadedFile): Promise<string> {
     return (file as FirebaseFile).metadata.contentType || "";
   }
 

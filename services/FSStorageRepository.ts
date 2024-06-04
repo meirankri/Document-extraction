@@ -1,10 +1,8 @@
 import fs from "fs";
 import path from "path";
 import {
+  BufferAndFileInfo,
   EnhancedFile,
-  FileFromUpload,
-  FileInfo,
-  FileInfos,
   StorageRepository,
   UploadedFile,
 } from "../types/interfaces";
@@ -41,10 +39,7 @@ class FSStorageRepository implements StorageRepository {
       return [];
     }
   }
-  uploadFile(
-    file: { file: Buffer; fileInfos: FileInfos },
-    folder: string
-  ): Promise<string> {
+  uploadFile(file: BufferAndFileInfo, folder: string): Promise<string> {
     throw new Error("Method not implemented.");
   }
   getFile(name: string, folder: string): UploadedFile {

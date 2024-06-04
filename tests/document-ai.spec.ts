@@ -8,12 +8,12 @@ describe("Document AI", () => {
     const result = dataExtraction.extractDataFromEntities(documentAi);
     expect(result).toMatchSnapshot([
       {
-        page: 1,
+        page: 0,
         firstName: { value: "serge", confidence: 1 },
         lastName: { value: "siritzky", confidence: 1 },
       },
       {
-        page: 2,
+        page: 1,
         examinationDate: { value: "5/4/2024", confidence: 1 },
         birthDate: { value: "11/12/1955", confidence: 1 },
         lastName: { value: "leroy sismondino", confidence: 1 },
@@ -24,7 +24,7 @@ describe("Document AI", () => {
         firstName: { value: "daniel", confidence: 1 },
       },
       {
-        page: 3,
+        page: 2,
         birthDate: { value: "28/11/1952", confidence: 1 },
         lastName: { value: "elmai,", confidence: 1 },
         firstName: { value: "faouzi", confidence: 1 },
@@ -35,7 +35,7 @@ describe("Document AI", () => {
         },
       },
       {
-        page: 4,
+        page: 3,
         examinationDate: { value: "3/4/2024", confidence: 1 },
         lastName: { value: "leroy sismondino", confidence: 1 },
         birthDate: { value: "11/12/1955", confidence: 1 },
@@ -46,7 +46,7 @@ describe("Document AI", () => {
         },
       },
       {
-        page: 5,
+        page: 4,
         lastName: { value: "elmai", confidence: 1 },
         examinationDate: { value: "17/2/2024", confidence: 0.3333333432674408 },
         birthDate: { value: "28/11/1952", confidence: 0.6666666865348816 },
@@ -57,7 +57,7 @@ describe("Document AI", () => {
         },
       },
       {
-        page: 6,
+        page: 5,
         examinationDate: { value: "27/2/2024", confidence: 1 },
         lastName: { value: "guillet", confidence: 1 },
         birthDate: { value: "27/2/1964", confidence: 1 },
@@ -66,26 +66,26 @@ describe("Document AI", () => {
           confidence: 1,
         },
         firstName: { value: "laurence", confidence: 1 },
+      },
+      {
+        page: 6,
+        examinationDate: { value: "27/2/2024", confidence: 1 },
+        birthDate: { value: "27/2/1964", confidence: 1 },
+        firstName: { value: "laurence", confidence: 1 },
+        medicalExamination: {
+          value: "echotomographie thyroidienne et cervicale",
+          confidence: 1,
+        },
+        lastName: { value: "guillet", confidence: 1 },
       },
       {
         page: 7,
-        examinationDate: { value: "27/2/2024", confidence: 1 },
-        birthDate: { value: "27/2/1964", confidence: 1 },
-        firstName: { value: "laurence", confidence: 1 },
-        medicalExamination: {
-          value: "echotomographie thyroidienne et cervicale",
-          confidence: 1,
-        },
-        lastName: { value: "guillet", confidence: 1 },
-      },
-      {
-        page: 8,
         birthDate: { value: "5/1/1952", confidence: 1 },
         firstName: { value: "jean pierre", confidence: 1 },
         lastName: { value: "avoignat", confidence: 1 },
       },
       {
-        page: 9,
+        page: 8,
         firstName: { value: "laurence", confidence: 1 },
         examinationDate: { value: "27/2/2024", confidence: 1 },
         medicalExamination: {
@@ -96,7 +96,7 @@ describe("Document AI", () => {
         lastName: { value: "guillet", confidence: 1 },
       },
       {
-        page: 10,
+        page: 9,
         medicalExamination: {
           value: "echotomographie thyroidienne et cervicale",
           confidence: 1,

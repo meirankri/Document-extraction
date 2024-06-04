@@ -1,5 +1,6 @@
 import { tenIfMoreThanTen } from "../utils/number";
 import {
+  BufferAndFileInfo,
   FileFromUpload,
   FileInfos,
   IFileRepository,
@@ -29,7 +30,7 @@ class StorageUseCase {
 
   async convertFileToPDF(
     files: FileFromUpload[]
-  ): Promise<{ file: Buffer; fileInfos: FileInfos }[]> {
+  ): Promise<BufferAndFileInfo[]> {
     const pdfFiles = [];
     for await (const file of files) {
       const pdf = await this.fileRepositoryFactory
@@ -54,10 +55,7 @@ class StorageUseCase {
     return this.storageRepository.getFile(name, folder);
   }
 
-  async filesUpload(
-    files: { file: Buffer; fileInfos: FileInfos }[],
-    folder: string
-  ) {
+  async filesUpload(files: BufferAndFileInfo[], folder: string) {
     const filesPromises: Promise<string>[] = [];
     for (const file of files) {
       filesPromises.push(this.storageRepository.uploadFile(file, folder));

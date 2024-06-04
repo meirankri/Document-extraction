@@ -2,9 +2,9 @@ import * as puppeteer from "puppeteer";
 import pdf from "pdf-parse";
 
 import { PDFDocument, PageSizes } from "pdf-lib";
-import mammoth from "mammoth";
 
-import { EnhancedMulterFile, FileFromUpload } from "types/interfaces";
+import { EnhancedMulterFile, PDF } from "../types/interfaces";
+import { convertDocToHtml } from "./conversion";
 
 export const imageToPdf = async (
   file: EnhancedMulterFile
@@ -12,7 +12,6 @@ export const imageToPdf = async (
   try {
     const pdfDoc = await PDFDocument.create();
 
-    // A4 format
     const pdfPage = pdfDoc.addPage(PageSizes.A4);
     const { width, height } = pdfPage.getSize();
 
@@ -26,11 +25,9 @@ export const imageToPdf = async (
     }
 
     let imageDims = imagePdf.size();
-    // Make sure the image is not larger than the page, and scale down to fit if it is
     if (imageDims.width > width || imageDims.height > height) {
       imageDims = imagePdf.scaleToFit(width, height);
     }
-    // Draw image in page, centered horizontally and vertically
     pdfPage.drawImage(imagePdf, {
       x: width / 2 - imageDims.width / 2,
       y: height / 2 - imageDims.height / 2,
@@ -40,7 +37,7 @@ export const imageToPdf = async (
 
     return await pdfDoc.save();
   } catch (error) {
-    console.error("Erreur lors de la conversion de l'image en PDF:", error);
+    console.error("Error during the image conversion to pdf:", error);
     return null;
   }
 };
@@ -48,19 +45,7 @@ export const imageToPdf = async (
 export const convertDocxToPdf = async (
   docxFile: EnhancedMulterFile | Buffer
 ): Promise<Buffer | null> => {
-  let htmlContent = "";
-  try {
-    let buffer;
-    if (docxFile instanceof Buffer) buffer = docxFile;
-    else buffer = docxFile.buffer;
-    const result = await mammoth.convertToHtml({ buffer });
-    htmlContent = result.value;
-  } catch (error) {
-    console.error("Erreur lors de la conversion du DOCX en HTML:", error);
-    return null;
-  }
-
-  // Ajoutez des styles pour les images
+  const htmlContent = await convertDocToHtml(docxFile);
   const styledHtmlContent = `
     <html>
       <head>
@@ -85,10 +70,8 @@ export const convertDocxToPdf = async (
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
-    // Chargez le contenu HTML
     await page.setContent(styledHtmlContent, { waitUntil: "domcontentloaded" });
 
-    // Générer un PDF de la page HTML
     const pdfBuffer = await page.pdf({ format: "A4" });
 
     await browser.close();
@@ -97,6 +80,10 @@ export const convertDocxToPdf = async (
     console.error("Erreur lors de la conversion du HTML en PDF:", error);
     return null;
   }
+};
+export const getPageCount = async (pdfBuffer: PDF): Promise<number> => {
+  const pdfDoc = await PDFDocument.load(pdfBuffer);
+  return pdfDoc.getPageCount();
 };
 
 export const checkIfPdfIsReadable = async (
@@ -111,4 +98,18 @@ export const checkIfPdfIsReadable = async (
     console.error("Erreur lors de la vérification du PDF:", error);
     return false;
   }
+};
+
+export const extractPageFromPdf = async (
+  file: Buffer,
+  numberOfPage: number
+) => {
+  const pdfDoc = await PDFDocument.load(file, { ignoreEncryption: true });
+  const newPdfDoc = await PDFDocument.create();
+
+  const pages = await newPdfDoc.copyPages(pdfDoc, [0]);
+  pages.slice(0, numberOfPage).forEach((page) => newPdfDoc.addPage(page));
+
+  const pdfByte = await newPdfDoc.save();
+  return pdfByte;
 };

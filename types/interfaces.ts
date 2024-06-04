@@ -18,7 +18,7 @@ export interface EnhancedFile extends FileInfo {
 
 export type FileFromUpload = EnhancedMulterFile | EnhancedFile;
 
-export type UploadedFile = EnhancedFile | GoogleFile | null;
+export type UploadedFile = EnhancedFile | GoogleFile | Buffer | null;
 
 export type FirebaseFile = GoogleFile;
 
@@ -48,15 +48,14 @@ export type ExtractDataArgument = {
   contentType: string;
 }[];
 
+export type BufferAndFileInfo = { file: Buffer; fileInfos: FileInfos };
+
 export type FileWithInfo = { file: UploadedFile; info: PatientInfo };
 export type Base64FileWithInfo = { file: string | null; info: PatientInfo };
 
 export interface StorageRepository {
   getAllFiles(folder: string, numberOfFiles?: number): Promise<UploadedFiles>;
-  uploadFile(
-    file: { file: Buffer; fileInfos: FileInfos },
-    folder: string
-  ): Promise<string>;
+  uploadFile(file: BufferAndFileInfo, folder: string): Promise<string>;
   getFile(name: string, folder: string): UploadedFile;
 }
 
@@ -64,7 +63,7 @@ export interface IFileRepository {
   checkIfItIsAPDF(file: UploadedFile): boolean;
   extractFirstPage(file: UploadedFile): Promise<Uint8Array | Buffer>;
   fileToBuffer(file: UploadedFile): Promise<Buffer>;
-  contentType(file: UploadedFile): string;
+  contentType(file: UploadedFile): Promise<string>;
   fileToPDF(file: FileFromUpload): Promise<Buffer | null>;
   isReadblePDF(file: UploadedFile): Promise<boolean>;
   getFileInfo(file: FileFromUpload): FileInfos;

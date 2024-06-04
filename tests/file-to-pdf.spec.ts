@@ -3,24 +3,22 @@ dotenv.config();
 import path from "path";
 
 import FileRepositoryFactory from "../factories/FileRepositoryFactory";
-import FSFilePdfRepository from "../services/FSFilePdfRepository";
 import FSStorage from "../services/FSStorageRepository";
 import StorageUseCase from "../usecase/StorageUseCase";
-import { EnhancedFile, UploadedFiles } from "../types/interfaces";
+import { EnhancedFile } from "../types/interfaces";
+import { getFilesFromUpload } from "./upload.fixture";
 
 describe("Test different file types to PDF conversion ", () => {
-  let files: UploadedFiles = [];
+  let files: EnhancedFile[] = [];
   let storageUseCase: StorageUseCase;
   beforeAll(async () => {
     const fsStorage = new FSStorage();
     storageUseCase = new StorageUseCase(fsStorage, FileRepositoryFactory);
-    const relativePath = "./tests/uploads"; // Replace with your relative path
-    const absolutePath = path.resolve(relativePath); // Convert to absolute path
 
-    files = await storageUseCase.getFiles(absolutePath);
+    files = await getFilesFromUpload();
   });
   test("Test image to PDF conversion", async () => {
-    const imageFile = files.find((file) => {
+    const imageFile = (files as EnhancedFile[]).find((file) => {
       const mimetype = file?.name
         ? path.extname(file.name).toLowerCase()
         : undefined;
@@ -41,7 +39,7 @@ describe("Test different file types to PDF conversion ", () => {
   });
 
   test("Test docx to PDF conversion", async () => {
-    const imageFile = files.find((file) => {
+    const imageFile = (files as EnhancedFile[]).find((file) => {
       const mimetype = file?.name
         ? path.extname(file.name).toLowerCase()
         : undefined;
@@ -62,7 +60,7 @@ describe("Test different file types to PDF conversion ", () => {
   });
 
   test("Test PDF to stay a PDF", async () => {
-    const imageFile = files.find((file) => {
+    const imageFile = (files as EnhancedFile[]).find((file) => {
       const mimetype = file?.name
         ? path.extname(file.name).toLowerCase()
         : undefined;

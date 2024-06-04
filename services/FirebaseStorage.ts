@@ -5,7 +5,7 @@ import {
   sortFilesByDate,
 } from "../utils/firebase";
 import {
-  FileInfos,
+  BufferAndFileInfo,
   StorageRepository,
   UploadedFile,
   UploadedFiles,
@@ -22,10 +22,7 @@ class FirebaseStorage implements StorageRepository {
       sortedFunction: sortFilesByDate,
     });
   }
-  uploadFile(
-    file: { file: Buffer; fileInfos: FileInfos },
-    folder: string
-  ): Promise<string> {
+  uploadFile(file: BufferAndFileInfo, folder: string): Promise<string> {
     return uploadFile(file, folder);
   }
 }

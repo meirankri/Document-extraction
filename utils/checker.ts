@@ -1,3 +1,5 @@
+import { fromBuffer } from "file-type";
+
 export const isEmpty = (obj: unknown): boolean => {
   if (obj === null || obj === undefined) {
     return true;
@@ -15,4 +17,16 @@ export const isEmpty = (obj: unknown): boolean => {
   }
 
   return false;
+};
+
+export const isPdf = (buffer: Buffer): boolean => {
+  const pdfHeader = "%PDF-";
+  const header = buffer.subarray(0, 5).toString("utf-8");
+  return header === pdfHeader;
+};
+
+export const contentType = async (file: Buffer): Promise<string> => {
+  const type = await fromBuffer(file);
+
+  return type ? type.mime : "application/octet-stream";
 };

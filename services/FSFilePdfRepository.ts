@@ -8,7 +8,8 @@ import {
   UploadedFile,
 } from "../types/interfaces";
 import path from "path";
-import { convertDocxToPdf } from "../utils/pdfLib";
+import { convertDocxToPdf, extractPageFromPdf } from "../utils/pdfLib";
+import { contentType, isPdf } from "../utils/checker";
 
 class FSFilePdfRepository implements IFileRepository {
   getFileInfo(file: EnhancedFile): FileInfos {
@@ -18,18 +19,19 @@ class FSFilePdfRepository implements IFileRepository {
       mimetype: file.type,
     };
   }
-  checkIfItIsAPDF(file: UploadedFile): boolean {
-    throw new Error("Method not implemented.");
+  checkIfItIsAPDF(file: Buffer): boolean {
+    return isPdf(file);
   }
-  extractFirstPage(file: UploadedFile): Promise<Buffer | Uint8Array> {
-    throw new Error("Method not implemented.");
+  async extractFirstPage(file: Buffer): Promise<Buffer | Uint8Array> {
+    return extractPageFromPdf(file, 1);
   }
-  fileToBuffer(file: UploadedFile): Promise<Buffer> {
-    throw new Error("Method not implemented.");
+  fileToBuffer(file: Buffer): Promise<Buffer> {
+    return Promise.resolve(file);
   }
-  contentType(file: UploadedFile): string {
-    throw new Error("Method not implemented.");
+  async contentType(file: Buffer): Promise<string> {
+    return contentType(file);
   }
+
   async fileToPDF(file: FileFromUpload): Promise<Buffer | null> {
     if (file.type !== "file") {
       throw new Error("File is not a file");
@@ -71,10 +73,41 @@ class FSFilePdfRepository implements IFileRepository {
   isReadblePDF(file: UploadedFile): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
-  createPdf(
-    files: { file: Uint8Array | File; contentType: string }[]
+  async createPdf(
+    files: { file: Uint8Array | Buffer; contentType: string }[]
   ): Promise<Uint8Array> {
-    throw new Error("Method not implemented.");
+    const pdfDoc = await PDFDocument.create();
+
+    for (const fileObject of files) {
+      const { file, contentType } = fileObject;
+      if (contentType === "application/pdf") {
+        const loadedPdf = await PDFDocument.load(file);
+        const pages = await pdfDoc.copyPages(
+          loadedPdf,
+          loadedPdf.getPageIndices()
+        );
+        pages.forEach((page) => pdfDoc.addPage(page));
+      } else if (contentType.startsWith("image")) {
+        let image;
+        if (contentType === "image/png") {
+          image = await pdfDoc.embedPng(file.buffer);
+        } else {
+          image = await pdfDoc.embedJpg(file.buffer);
+        }
+
+        const { width, height } = image;
+        const page = pdfDoc.addPage([width, height]);
+        page.drawImage(image, {
+          x: 0,
+          y: 0,
+          width: width,
+          height: height,
+        });
+      }
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes;
   }
 }
 

@@ -1,11 +1,11 @@
 import { File } from "@google-cloud/storage";
 
 import { bucket } from "../libs/firebase";
-import { FileInfos } from "../types/interfaces";
+import { BufferAndFileInfo, FileInfos } from "../types/interfaces";
 import { removeExtension } from "./format";
 
 export const uploadFile = (
-  file: { file: Buffer; fileInfos: FileInfos },
+  file: BufferAndFileInfo,
   folder: string
 ): Promise<string> => {
   const fileRef = bucket.file(

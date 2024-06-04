@@ -18,22 +18,6 @@ class FileUseCase {
     private readonly files: UploadedFiles
   ) {}
 
-  checkIfItIsAPDF(file: UploadedFile): boolean {
-    return this.fileRepository.checkIfItIsAPDF(file);
-  }
-
-  extractFirstPage(file: UploadedFile) {
-    return this.fileRepository.extractFirstPage(file);
-  }
-
-  contentType(file: UploadedFile): string {
-    return this.fileRepository.contentType(file);
-  }
-
-  createPdf(files: { file: Buffer | Uint8Array; contentType: string }[]) {
-    return this.fileRepository.createPdf(files);
-  }
-
   async filesToBase64(
     filesWithInfo: FileWithInfo[]
   ): Promise<Base64FileWithInfo[]> {
@@ -89,14 +73,20 @@ class FileUseCase {
   async handleMultipleFiles(): Promise<ExtractDataArgument> {
     const pdfToAnalyse = [];
     for await (const file of this.files) {
-      const isAPDF = this.checkIfItIsAPDF(file);
+      const isAPDF = this.fileRepository.checkIfItIsAPDF(file);
       if (isAPDF) {
-        const _file = await this.extractFirstPage(file);
-        const infos = { file: _file, contentType: this.contentType(file) };
+        const _file = await this.fileRepository.extractFirstPage(file);
+        const infos = {
+          file: _file,
+          contentType: await this.fileRepository.contentType(file),
+        };
         pdfToAnalyse.push(infos);
       } else {
         const _file = await this.fileRepository.fileToBuffer(file);
-        const infos = { file: _file, contentType: this.contentType(file) };
+        const infos = {
+          file: _file,
+          contentType: await this.fileRepository.contentType(file),
+        };
         pdfToAnalyse.push(infos);
       }
     }
@@ -105,7 +95,7 @@ class FileUseCase {
 
   async handleFiles() {
     const pdfToAnalyse = await this.handleMultipleFiles();
-    return this.createPdf(pdfToAnalyse);
+    return this.fileRepository.createPdf(pdfToAnalyse);
   }
 }
 
