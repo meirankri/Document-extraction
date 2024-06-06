@@ -723,7 +723,6 @@ export const medicalExaminations: string[] = [
   "Viscosupplémentation",
   "Infiltration écho-guidée",
   "Échographie ostéo-articulaire",
-
   "Chirurgie buccale",
   "Chirurgie dermatologique cervico-faciale",
   "Chirurgie des dents de sagesse",

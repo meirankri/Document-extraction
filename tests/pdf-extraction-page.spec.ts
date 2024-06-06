@@ -10,8 +10,8 @@ import {
 
 import { convertFilesToPDF, getFilesFromUpload } from "./upload.fixture";
 import { getPageCount } from "../utils/pdfLib";
-import FileUseCase from "../usecase/FileUseCase";
 import FSFilePdfRepository from "../services/FSFilePdfRepository";
+import FileUseCase from "../usecase/FileUseCase";
 
 describe("Test the pdf extraction use case", () => {
   let files: UploadedFiles = [];
@@ -30,7 +30,8 @@ describe("Test the pdf extraction use case", () => {
     pdfFileRepository = new FSFilePdfRepository();
 
     const fileUseCase = new FileUseCase(pdfFileRepository, pdfFiles);
-    pdfFilesFirstPageExtracted = await fileUseCase.handleMultipleFiles();
+    pdfFilesFirstPageExtracted =
+      (await fileUseCase.handleMultipleFiles()) || [];
 
     for await (const pdfFile of pdfFilesFirstPageExtracted) {
       const count = await getPageCount(pdfFile.file);
@@ -43,7 +44,20 @@ describe("Test the pdf extraction use case", () => {
     const fileUseCase = new FileUseCase(pdfFileRepository, pdfFiles);
 
     const pdfFile = await fileUseCase.handleFiles();
-    const pageCount = await getPageCount(pdfFile);
+    const pageCount = pdfFile ? await getPageCount(pdfFile) : 0;
     expect(pageCount).toBe(pdfFilesFirstPageExtracted.length);
+  });
+  const handleMultipleFilesMock = jest
+    .spyOn(FileUseCase.prototype, "handleMultipleFiles")
+    .mockImplementation(async () => {
+      return null;
+    });
+
+  test("It should return null if the pdf extraction fails", async () => {
+    const pdfFileRepository = new FSFilePdfRepository();
+    const fileUseCase = new FileUseCase(pdfFileRepository, []);
+    const pdfFilesFirstPageExtracted = await fileUseCase.handleFiles();
+    expect(handleMultipleFilesMock).toHaveBeenCalled();
+    expect(pdfFilesFirstPageExtracted).toBeNull();
   });
 });

@@ -12,6 +12,10 @@ class FileRepositoryFactory {
     }
     throw new Error("File type not supported");
   }
+
+  static deleteFilesRepository(): IFileRepository {
+    return new FirebaseFilePdfRepository();
+  }
 }
 
 export default FileRepositoryFactory;

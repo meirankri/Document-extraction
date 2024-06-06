@@ -20,6 +20,15 @@ class StorageUseCase {
     this.fileRepositoryFactory = fileRepository;
   }
 
+  async deleteFiles(files: UploadedFiles | null) {
+    if (!files) {
+      return;
+    }
+    return this.fileRepositoryFactory
+      .deleteFilesRepository()
+      .deleteFiles(files);
+  }
+
   getFiles(folder: string, numberOfFiles?: number): Promise<UploadedFiles> {
     return this.storageRepository.getAllFiles(folder, numberOfFiles);
   }

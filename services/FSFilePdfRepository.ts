@@ -6,12 +6,20 @@ import {
   FileInfos,
   IFileRepository,
   UploadedFile,
+  UploadedFiles,
 } from "../types/interfaces";
 import path from "path";
 import { convertDocxToPdf, extractPageFromPdf } from "../utils/pdfLib";
 import { contentType, isPdf } from "../utils/checker";
 
 class FSFilePdfRepository implements IFileRepository {
+  async deleteFiles(files: EnhancedFile[]): Promise<void> {
+    return Promise.all(
+      files.map(async (file) => {
+        await fs.unlink(file?.path);
+      })
+    ).then(() => {});
+  }
   getFileInfo(file: EnhancedFile): FileInfos {
     return {
       filename: file.name,
@@ -19,6 +27,7 @@ class FSFilePdfRepository implements IFileRepository {
       mimetype: file.type,
     };
   }
+
   checkIfItIsAPDF(file: Buffer): boolean {
     return isPdf(file);
   }

@@ -1,20 +1,26 @@
+import {
+  compose,
+  removeAccents,
+  removeSpecialCharactersAndHyphens,
+} from "./format";
+
 export const findMostSimilarExamination = (
   variable: string | undefined,
   exams: string[]
 ): string | null => {
   if (!variable) return null;
-  let mostSimilarExam = "";
-  let maxSimilarity = 0;
+
+  const processText = compose(removeAccents, removeSpecialCharactersAndHyphens);
 
   for (const exam of exams) {
-    let similarity = calculateSimilarity(variable, exam);
-    if (similarity > maxSimilarity) {
-      maxSimilarity = similarity;
-      mostSimilarExam = exam;
+    if (
+      processText(exam).toLowerCase() === processText(variable).toLowerCase()
+    ) {
+      return exam;
     }
   }
 
-  return mostSimilarExam;
+  return null;
 };
 
 const calculateSimilarity = (s1: string, s2: string): number => {
@@ -31,5 +37,5 @@ const calculateSimilarity = (s1: string, s2: string): number => {
     }
   }
 
-  return maxLen;
+  return maxLen / longer.length;
 };

@@ -13,6 +13,7 @@ import {
   checkIfPdfIsReadable,
   extractPageFromPdf,
 } from "../utils/pdfLib";
+import { deleteFile } from "../utils/firebase";
 
 class FirebaseFilePdfRepository implements IFileRepository {
   getFileInfo(file: EnhancedMulterFile): FileInfos {
@@ -21,6 +22,11 @@ class FirebaseFilePdfRepository implements IFileRepository {
       ext: file.originalname.split(".").pop() || "",
       mimetype: file.mimetype,
     };
+  }
+  async deleteFiles(files: FirebaseFile[]): Promise<void> {
+    return Promise.all(files.map((file) => deleteFile(file.name))).then(
+      () => {}
+    );
   }
   async isReadblePDF(file: UploadedFile): Promise<boolean> {
     return this.fileToBuffer(file).then((buffer) => {

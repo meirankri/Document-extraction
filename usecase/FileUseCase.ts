@@ -70,32 +70,43 @@ class FileUseCase {
     return { scannedPdfs: scannedPdfSlice, readableScannedPdfs };
   }
 
-  async handleMultipleFiles(): Promise<ExtractDataArgument> {
+  async handleMultipleFiles(): Promise<ExtractDataArgument | null> {
+    console.log("entrez");
+
     const pdfToAnalyse = [];
-    for await (const file of this.files) {
-      const isAPDF = this.fileRepository.checkIfItIsAPDF(file);
-      if (isAPDF) {
-        const _file = await this.fileRepository.extractFirstPage(file);
-        const infos = {
-          file: _file,
-          contentType: await this.fileRepository.contentType(file),
-        };
-        pdfToAnalyse.push(infos);
-      } else {
-        const _file = await this.fileRepository.fileToBuffer(file);
-        const infos = {
-          file: _file,
-          contentType: await this.fileRepository.contentType(file),
-        };
-        pdfToAnalyse.push(infos);
+    try {
+      for await (const file of this.files) {
+        const isAPDF = this.fileRepository.checkIfItIsAPDF(file);
+        if (isAPDF) {
+          const _file = await this.fileRepository.extractFirstPage(file);
+          const infos = {
+            file: _file,
+            contentType: await this.fileRepository.contentType(file),
+          };
+          pdfToAnalyse.push(infos);
+        } else {
+          const _file = await this.fileRepository.fileToBuffer(file);
+          const infos = {
+            file: _file,
+            contentType: await this.fileRepository.contentType(file),
+          };
+          pdfToAnalyse.push(infos);
+        }
       }
+    } catch (error) {
+      console.error(
+        "Error extracting the first page of the pdf or converting the file to buffer",
+        error
+      );
+
+      return null;
     }
     return pdfToAnalyse;
   }
 
   async handleFiles() {
     const pdfToAnalyse = await this.handleMultipleFiles();
-    return this.fileRepository.createPdf(pdfToAnalyse);
+    return pdfToAnalyse ? this.fileRepository.createPdf(pdfToAnalyse) : null;
   }
 }
 
