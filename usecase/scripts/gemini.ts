@@ -18,12 +18,16 @@ const extractDataFromGemini = async (
     pdfFileRepository,
     documents as UploadedFiles
   );
+  let readableFilesAndData, readableFilesToDelete;
+
   const multiplePdfs = await fileUseCase.handleMultipleFiles();
+  if (!multiplePdfs) {
+    return { readableFilesAndData, readableFilesToDelete };
+  }
   const extractionDataRepository = new DataExtractionGeminiRepository();
   const extractionData = new DataExtractionUseCase(extractionDataRepository);
   const data = await extractionData.extractData(multiplePdfs);
 
-  let readableFilesAndData, readableFilesToDelete;
   if (data) {
     const filesWithInfos = extractionData.linkFileWithInfos(
       documents as UploadedFiles,
