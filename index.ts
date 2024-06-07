@@ -53,7 +53,12 @@ app.post("/upload", uploadMultiple, async (req: Request, res: Response) => {
     return res.status(500).send("Error converting files to pdf.");
   }
   try {
-    await storageUseCase.filesUpload(pdfFiles, firebaseFolder);
+    const response = await storageUseCase.filesUpload(pdfFiles, firebaseFolder);
+    if (response.error) {
+      console.log("Error uploading files", response.error);
+
+      return res.status(500).send("Error uploading files.");
+    }
   } catch (error) {
     // peut etre envoyer un mail à l'admin
     console.error("Error uploading files", error);

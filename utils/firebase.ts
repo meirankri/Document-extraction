@@ -1,7 +1,7 @@
 import { File } from "@google-cloud/storage";
 
 import { bucket } from "../libs/firebase";
-import { BufferAndFileInfo, FileInfos } from "../types/interfaces";
+import { BufferAndFileInfo } from "../types/interfaces";
 import { removeExtension } from "./format";
 
 export const uploadFile = (

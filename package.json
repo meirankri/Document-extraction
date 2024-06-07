@@ -10,7 +10,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "docker:build": "docker build -t extract-info .",
-    "docker:run": "docker compose up",
+    "docker:run": "docker-compose up",
     "docker:stop": "docker compose down"
   },
   "devDependencies": {

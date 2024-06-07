@@ -7,11 +7,14 @@ const credential = JSON.parse(
 );
 
 const config = {
-  credential: admin.credential.cert({
-    privateKey: credential.private_key.replace(/\\n/g, "\n"),
-    clientEmail: credential.client_email,
-    projectId: credential.project_id || "",
-  }),
+  credential: admin.credential.cert(
+    process.env.GOOGLE_APPLICATION_CREDENTIALS || ""
+  ),
+  // credential: admin.credential.cert({
+  //   privateKey: credential.private_key.replace(/\\n/g, "\n"),
+  //   clientEmail: credential.client_email,
+  //   projectId: credential.project_id || "",
+  // }),
   storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
 };
 
