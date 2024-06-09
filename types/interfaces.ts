@@ -74,7 +74,7 @@ export interface IFileRepository {
 }
 
 export interface IDataExtractionRepository {
-  handleFiles?(documents: PDF): Promise<PatientInfo[]>;
+  handleFile?(document: PDF): Promise<PatientInfo[]>;
   handleMultipleFiles?(documents: ExtractDataArgument): Promise<PatientInfo[]>;
   linkFileWithInfo(files: UploadedFiles, infos: PatientInfo[]): FileWithInfo[];
 }

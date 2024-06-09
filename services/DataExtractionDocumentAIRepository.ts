@@ -18,7 +18,7 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
     }
     return fileWithInfos;
   }
-  async handleFiles(document: PDF): Promise<PatientInfo[]> {
+  async handleFile(document: PDF): Promise<PatientInfo[]> {
     const { entities } = (await processDocument(document)) || {};
     return this.extractDataFromEntities(entities);
   }
@@ -38,7 +38,10 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
       let patientInfo = result.find((info) => info.page === page);
 
       if (!patientInfo) {
-        patientInfo = { page };
+        patientInfo = {
+          page,
+        };
+
         result.push(patientInfo);
       }
       if (item.mentionText) {
@@ -49,10 +52,10 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
           case "patient-lastname":
             patientInfo.patientLastname = item.mentionText.toLowerCase();
             break;
-          case "medical-examination":
+          case "medical-examination-type":
             patientInfo.medicalExamination = item.mentionText.toLowerCase();
             break;
-          case "birth-date":
+          case "patient-birthdate":
             let birthValue = item.mentionText.toLowerCase();
             if (item.normalizedValue) {
               const { dateValue } = item.normalizedValue;
@@ -60,7 +63,7 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
             }
             patientInfo.patientBirthDate = birthValue;
             break;
-          case "date-examination":
+          case "medical-examination-date":
             let examinationDateValue = item.mentionText.toLowerCase();
             if (item.normalizedValue) {
               const { dateValue } = item.normalizedValue;

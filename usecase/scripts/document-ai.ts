@@ -5,6 +5,7 @@ import DataExtractionUseCase from "../DataExtractionUseCase";
 import EmailNotificationAWSRepository from "../../services/EmailNotificationAWSRepository";
 import DataVerificationUseCase from "../DataVerificationUseCase";
 import DataExtractionDocumentAIRepository from "../../services/DataExtractionDocumentAIRepository";
+import { logger } from "../../utils/logger";
 
 const documentAi = async (
   documents: UploadedFiles
@@ -47,11 +48,12 @@ const documentAi = async (
           filesToDelete: scannedFilesToDelete,
         } = await verificationUseCase.verifyData(filesWithInfos));
       } catch (error) {
-        console.error("verify data as not been run", error);
+        logger({ message: "verify data as not been run", context: error })
+          .error;
       }
     }
   } catch (error) {
-    console.error("Error extracting data", error);
+    logger({ message: "Error extracting data", context: error }).error;
   }
   return { scannedFilesAndData, scannedFilesToDelete };
 };

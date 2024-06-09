@@ -18,11 +18,13 @@ class DataVerificationUseCase {
   }> {
     const filesAndData: FileWithInfo[] = [];
     const filesToDelete: UploadedFile[] = [];
+    console.log("file", filesWithInfo);
 
     for (const fileInfo of filesWithInfo) {
       const { info, file } = fileInfo;
+      delete info.page;
+
       const resultInfo = { ...info };
-      delete resultInfo.page;
 
       const checkingMessage = this.checkFields({ info: resultInfo, file });
 

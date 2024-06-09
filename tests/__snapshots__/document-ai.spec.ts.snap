@@ -3,214 +3,79 @@
 exports[`Document AI it should extract data from document.entities 1`] = `
 [
   {
-    "firstName": {
-      "confidence": 1,
-      "value": "serge",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "siritzky",
-    },
+    "page": 0,
+    "patientFirstname": "serge",
+    "patientLastname": "siritzky",
+  },
+  {
+    "examinationDate": "5/4/2024",
+    "medicalExamination": "echographie cardiaque trans-thoracique",
     "page": 1,
+    "patientBirthDate": "11/12/1955",
+    "patientFirstname": "daniel",
+    "patientLastname": "leroy sismondino",
   },
   {
-    "birthDate": {
-      "confidence": 1,
-      "value": "11/12/1955",
-    },
-    "examinationDate": {
-      "confidence": 1,
-      "value": "5/4/2024",
-    },
-    "firstName": {
-      "confidence": 1,
-      "value": "daniel",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "leroy sismondino",
-    },
-    "medicalExamination": {
-      "confidence": 1,
-      "value": "echographie cardiaque trans-thoracique",
-    },
+    "examinationDate": "6/2/2024",
+    "medicalExamination": "compte rendu",
     "page": 2,
+    "patientBirthDate": "28/11/1952",
+    "patientFirstname": "faouzi",
+    "patientLastname": "elmai,",
   },
   {
-    "birthDate": {
-      "confidence": 1,
-      "value": "28/11/1952",
-    },
-    "examinationDate": {
-      "confidence": 1,
-      "value": "6/2/2024",
-    },
-    "firstName": {
-      "confidence": 1,
-      "value": "faouzi",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "elmai,",
-    },
-    "medicalExamination": {
-      "confidence": 0.1666666716337204,
-      "value": "compte rendu",
-    },
+    "examinationDate": "3/4/2024",
+    "medicalExamination": "coronarographie et angiopíastie",
     "page": 3,
+    "patientBirthDate": "11/12/1955",
+    "patientFirstname": "daniel",
+    "patientLastname": "leroy sismondino",
   },
   {
-    "birthDate": {
-      "confidence": 1,
-      "value": "11/12/1955",
-    },
-    "examinationDate": {
-      "confidence": 1,
-      "value": "3/4/2024",
-    },
-    "firstName": {
-      "confidence": 1,
-      "value": "daniel",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "leroy sismondino",
-    },
-    "medicalExamination": {
-      "confidence": 0.5,
-      "value": "coronarographie et angiopíastie",
-    },
+    "examinationDate": "17/2/2024",
+    "medicalExamination": "compte-rendu d'hospitalisation prise en charge avc",
     "page": 4,
+    "patientBirthDate": "28/11/1952",
+    "patientFirstname": "faouzi",
+    "patientLastname": "elmai",
   },
   {
-    "birthDate": {
-      "confidence": 0.6666666865348816,
-      "value": "28/11/1952",
-    },
-    "examinationDate": {
-      "confidence": 0.3333333432674408,
-      "value": "17/2/2024",
-    },
-    "firstName": {
-      "confidence": 1,
-      "value": "faouzi",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "elmai",
-    },
-    "medicalExamination": {
-      "confidence": 0.3333333432674408,
-      "value": "compte-rendu d'hospitalisation prise en charge avc",
-    },
+    "examinationDate": "27/2/2024",
+    "medicalExamination": "echotomographie thyroidienne et cervicale",
     "page": 5,
+    "patientBirthDate": "27/2/1964",
+    "patientFirstname": "laurence",
+    "patientLastname": "guillet",
   },
   {
-    "birthDate": {
-      "confidence": 1,
-      "value": "27/2/1964",
-    },
-    "examinationDate": {
-      "confidence": 1,
-      "value": "27/2/2024",
-    },
-    "firstName": {
-      "confidence": 1,
-      "value": "laurence",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "guillet",
-    },
-    "medicalExamination": {
-      "confidence": 1,
-      "value": "echotomographie thyroidienne et cervicale",
-    },
+    "examinationDate": "27/2/2024",
+    "medicalExamination": "echotomographie thyroidienne et cervicale",
     "page": 6,
+    "patientBirthDate": "27/2/1964",
+    "patientFirstname": "laurence",
+    "patientLastname": "guillet",
   },
   {
-    "birthDate": {
-      "confidence": 1,
-      "value": "27/2/1964",
-    },
-    "examinationDate": {
-      "confidence": 1,
-      "value": "27/2/2024",
-    },
-    "firstName": {
-      "confidence": 1,
-      "value": "laurence",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "guillet",
-    },
-    "medicalExamination": {
-      "confidence": 1,
-      "value": "echotomographie thyroidienne et cervicale",
-    },
     "page": 7,
+    "patientBirthDate": "5/1/1952",
+    "patientFirstname": "jean pierre",
+    "patientLastname": "avoignat",
   },
   {
-    "birthDate": {
-      "confidence": 1,
-      "value": "5/1/1952",
-    },
-    "firstName": {
-      "confidence": 1,
-      "value": "jean pierre",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "avoignat",
-    },
+    "examinationDate": "27/2/2024",
+    "medicalExamination": "echotomographie thyroidienne et cervicale",
     "page": 8,
+    "patientBirthDate": "27/2/1964",
+    "patientFirstname": "laurence",
+    "patientLastname": "guillet",
   },
   {
-    "birthDate": {
-      "confidence": 1,
-      "value": "27/2/1964",
-    },
-    "examinationDate": {
-      "confidence": 1,
-      "value": "27/2/2024",
-    },
-    "firstName": {
-      "confidence": 1,
-      "value": "laurence",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "guillet",
-    },
-    "medicalExamination": {
-      "confidence": 1,
-      "value": "echotomographie thyroidienne et cervicale",
-    },
+    "examinationDate": "27/2/2024",
+    "medicalExamination": "echotomographie thyroidienne et cervicale",
     "page": 9,
-  },
-  {
-    "birthDate": {
-      "confidence": 1,
-      "value": "27/2/1964",
-    },
-    "examinationDate": {
-      "confidence": 1,
-      "value": "27/2/2024",
-    },
-    "firstName": {
-      "confidence": 1,
-      "value": "laurence",
-    },
-    "lastName": {
-      "confidence": 1,
-      "value": "guillet",
-    },
-    "medicalExamination": {
-      "confidence": 1,
-      "value": "echotomographie thyroidienne et cervicale",
-    },
-    "page": 10,
+    "patientBirthDate": "27/2/1964",
+    "patientFirstname": "laurence",
+    "patientLastname": "guillet",
   },
 ]
 `;

@@ -1,110 +1,127 @@
 import dotenv from "dotenv";
 dotenv.config();
 import DataExtractionDocumentAIRepository from "../services/DataExtractionDocumentAIRepository";
+import FileUseCase from "../usecase/FileUseCase";
+import { EnhancedFile, FileInfos, UploadedFiles } from "../types/interfaces";
+import FSFilePdfRepository from "../services/FSFilePdfRepository";
+import { convertFilesToPDF, getFilesFromUpload } from "./upload.fixture";
+import DataExtractionUseCase from "../usecase/DataExtractionUseCase";
 
 describe("Document AI", () => {
+  let files: UploadedFiles = [];
+  let pdfFiles: UploadedFiles = [];
+  let pdfFileRepository: FSFilePdfRepository;
+  let info: FileInfos[] = [];
+
+  beforeAll(async () => {
+    files = await getFilesFromUpload();
+    ({ files: pdfFiles, info } = await convertFilesToPDF(
+      files as EnhancedFile[]
+    ));
+  });
+  test.skip("Test extraction of informations from the pdf", async () => {
+    pdfFileRepository = new FSFilePdfRepository();
+
+    const fileUseCase = new FileUseCase(pdfFileRepository, pdfFiles);
+
+    const pdfFile = await fileUseCase.handleFiles();
+    const extractionDataRepository = new DataExtractionDocumentAIRepository();
+    const extractionData = new DataExtractionUseCase(extractionDataRepository);
+    let scannedFilesAndData = null,
+      scannedFilesToDelete = null;
+
+    if (!pdfFile) {
+      return { scannedFilesAndData, scannedFilesToDelete };
+    }
+    let data: any;
+    try {
+      data = await extractionData.extractData(pdfFile);
+    } catch (error) {
+      console.error("Error extracting data", error);
+    }
+    expect(data).toBeInstanceOf(Array);
+    expect(data).not.toHaveLength(0);
+  }, 10000);
   test("it should extract data from document.entities", () => {
     const dataExtraction = new DataExtractionDocumentAIRepository();
     const result = dataExtraction.extractDataFromEntities(documentAi);
+
     expect(result).toMatchSnapshot([
       {
         page: 0,
-        firstName: { value: "serge", confidence: 1 },
-        lastName: { value: "siritzky", confidence: 1 },
+        patientFirstname: "serge",
+        patientLastname: "siritzky",
       },
       {
         page: 1,
-        examinationDate: { value: "5/4/2024", confidence: 1 },
-        birthDate: { value: "11/12/1955", confidence: 1 },
-        lastName: { value: "leroy sismondino", confidence: 1 },
-        medicalExamination: {
-          value: "echographie cardiaque trans-thoracique",
-          confidence: 1,
-        },
-        firstName: { value: "daniel", confidence: 1 },
+        examinationDate: "5/4/2024",
+        patientBirthDate: "11/12/1955",
+        patientLastname: "leroy sismondino",
+        medicalExamination: "echographie cardiaque trans-thoracique",
+        patientFirstname: "daniel",
       },
       {
         page: 2,
-        birthDate: { value: "28/11/1952", confidence: 1 },
-        lastName: { value: "elmai,", confidence: 1 },
-        firstName: { value: "faouzi", confidence: 1 },
-        examinationDate: { value: "6/2/2024", confidence: 1 },
-        medicalExamination: {
-          value: "compte rendu",
-          confidence: 0.1666666716337204,
-        },
+        patientBirthDate: "28/11/1952",
+        patientLastname: "elmai,",
+        patientFirstname: "faouzi",
+        examinationDate: "6/2/2024",
+        medicalExamination: "compte rendu",
       },
       {
         page: 3,
-        examinationDate: { value: "3/4/2024", confidence: 1 },
-        lastName: { value: "leroy sismondino", confidence: 1 },
-        birthDate: { value: "11/12/1955", confidence: 1 },
-        firstName: { value: "daniel", confidence: 1 },
-        medicalExamination: {
-          value: "coronarographie et angiopíastie",
-          confidence: 0.5,
-        },
+        examinationDate: "3/4/2024",
+        patientLastname: "leroy sismondino",
+        patientBirthDate: "11/12/1955",
+        patientFirstname: "daniel",
+        medicalExamination: "coronarographie et angiopíastie",
       },
       {
         page: 4,
-        lastName: { value: "elmai", confidence: 1 },
-        examinationDate: { value: "17/2/2024", confidence: 0.3333333432674408 },
-        birthDate: { value: "28/11/1952", confidence: 0.6666666865348816 },
-        firstName: { value: "faouzi", confidence: 1 },
-        medicalExamination: {
-          value: "compte-rendu d'hospitalisation prise en charge avc",
-          confidence: 0.3333333432674408,
-        },
+        patientLastname: "elmai",
+        examinationDate: "17/2/2024",
+        patientBirthDate: "28/11/1952",
+        patientFirstname: "faouzi",
+        medicalExamination:
+          "compte-rendu d'hospitalisation prise en charge avc",
       },
       {
         page: 5,
-        examinationDate: { value: "27/2/2024", confidence: 1 },
-        lastName: { value: "guillet", confidence: 1 },
-        birthDate: { value: "27/2/1964", confidence: 1 },
-        medicalExamination: {
-          value: "echotomographie thyroidienne et cervicale",
-          confidence: 1,
-        },
-        firstName: { value: "laurence", confidence: 1 },
+        examinationDate: "27/2/2024",
+        patientLastname: "guillet",
+        patientBirthDate: "27/2/1964",
+        medicalExamination: "echotomographie thyroidienne et cervicale",
+        patientFirstname: "laurence",
       },
       {
         page: 6,
-        examinationDate: { value: "27/2/2024", confidence: 1 },
-        birthDate: { value: "27/2/1964", confidence: 1 },
-        firstName: { value: "laurence", confidence: 1 },
-        medicalExamination: {
-          value: "echotomographie thyroidienne et cervicale",
-          confidence: 1,
-        },
-        lastName: { value: "guillet", confidence: 1 },
+        examinationDate: "27/2/2024",
+        patientBirthDate: "27/2/1964",
+        patientFirstname: "laurence",
+        medicalExamination: "echotomographie thyroidienne et cervicale",
+        patientLastname: "guillet",
       },
       {
         page: 7,
-        birthDate: { value: "5/1/1952", confidence: 1 },
-        firstName: { value: "jean pierre", confidence: 1 },
-        lastName: { value: "avoignat", confidence: 1 },
+        patientBirthDate: "5/1/1952",
+        patientFirstname: "jean pierre",
+        patientLastname: "avoignat",
       },
       {
         page: 8,
-        firstName: { value: "laurence", confidence: 1 },
-        examinationDate: { value: "27/2/2024", confidence: 1 },
-        medicalExamination: {
-          value: "echotomographie thyroidienne et cervicale",
-          confidence: 1,
-        },
-        birthDate: { value: "27/2/1964", confidence: 1 },
-        lastName: { value: "guillet", confidence: 1 },
+        patientFirstname: "laurence",
+        examinationDate: "27/2/2024",
+        medicalExamination: "echotomographie thyroidienne et cervicale",
+        patientBirthDate: "27/2/1964",
+        patientLastname: "guillet",
       },
       {
         page: 9,
-        medicalExamination: {
-          value: "echotomographie thyroidienne et cervicale",
-          confidence: 1,
-        },
-        birthDate: { value: "27/2/1964", confidence: 1 },
-        lastName: { value: "guillet", confidence: 1 },
-        examinationDate: { value: "27/2/2024", confidence: 1 },
-        firstName: { value: "laurence", confidence: 1 },
+        medicalExamination: "echotomographie thyroidienne et cervicale",
+        patientBirthDate: "27/2/1964",
+        patientLastname: "guillet",
+        examinationDate: "27/2/2024",
+        patientFirstname: "laurence",
       },
     ]);
   });
@@ -222,7 +239,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "date-examination",
+    type: "medical-examination-date",
     mentionText: "05/04/2024",
     mentionId: "",
     confidence: 1,
@@ -280,7 +297,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "birth-date",
+    type: "patient-birthdate",
     mentionText: "11/12/1955",
     mentionId: "",
     confidence: 1,
@@ -388,7 +405,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "medical-examination",
+    type: "medical-examination-type",
     mentionText: "Echographie Cardiaque Trans-Thoracique",
     mentionId: "",
     confidence: 1,
@@ -488,7 +505,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "birth-date",
+    type: "patient-birthdate",
     mentionText: "28/11/1952",
     mentionId: "",
     confidence: 1,
@@ -646,7 +663,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "date-examination",
+    type: "medical-examination-date",
     mentionText: "06/02/2024",
     mentionId: "",
     confidence: 1,
@@ -704,7 +721,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "medical-examination",
+    type: "medical-examination-type",
     mentionText: "Compte rendu",
     mentionId: "",
     confidence: 0.1666666716337204,
@@ -754,7 +771,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "date-examination",
+    type: "medical-examination-date",
     mentionText: "03/04/2024",
     mentionId: "",
     confidence: 1,
@@ -862,7 +879,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "birth-date",
+    type: "patient-birthdate",
     mentionText: "11/12/1955",
     mentionId: "",
     confidence: 1,
@@ -970,7 +987,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "medical-examination",
+    type: "medical-examination-type",
     mentionText: "Coronarographie et Angiopíastie",
     mentionId: "",
     confidence: 0.5,
@@ -1070,7 +1087,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "date-examination",
+    type: "medical-examination-date",
     mentionText: "13/02/2024",
     mentionId: "",
     confidence: 0.3333333432674408,
@@ -1128,7 +1145,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "date-examination",
+    type: "medical-examination-date",
     mentionText: "17/02/2024",
     mentionId: "",
     confidence: 0.3333333432674408,
@@ -1186,7 +1203,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "birth-date",
+    type: "patient-birthdate",
     mentionText: "28/11/1952",
     mentionId: "",
     confidence: 0.6666666865348816,
@@ -1294,7 +1311,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "medical-examination",
+    type: "medical-examination-type",
     mentionText: "COMPTE-RENDU D'HOSPITALISATION PRISE EN CHARGE AVC",
     mentionId: "",
     confidence: 0.3333333432674408,
@@ -1344,7 +1361,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "date-examination",
+    type: "medical-examination-date",
     mentionText: "27/02/2024",
     mentionId: "",
     confidence: 1,
@@ -1452,7 +1469,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "birth-date",
+    type: "patient-birthdate",
     mentionText: "27/02/1964",
     mentionId: "",
     confidence: 1,
@@ -1510,7 +1527,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "medical-examination",
+    type: "medical-examination-type",
     mentionText: "ECHOTOMOGRAPHIE THYROIDIENNE ET CERVICALE",
     mentionId: "",
     confidence: 1,
@@ -1610,7 +1627,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "date-examination",
+    type: "medical-examination-date",
     mentionText: "27/02/2024",
     mentionId: "",
     confidence: 1,
@@ -1668,7 +1685,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "birth-date",
+    type: "patient-birthdate",
     mentionText: "27/02/1964",
     mentionId: "",
     confidence: 1,
@@ -1776,7 +1793,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "medical-examination",
+    type: "medical-examination-type",
     mentionText: "ECHOTOMOGRAPHIE THYROIDIENNE ET CERVICALE",
     mentionId: "",
     confidence: 1,
@@ -1876,7 +1893,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "birth-date",
+    type: "patient-birthdate",
     mentionText: "5/01/1952",
     mentionId: "",
     confidence: 1,
@@ -2084,7 +2101,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "date-examination",
+    type: "medical-examination-date",
     mentionText: "27/02/2024",
     mentionId: "",
     confidence: 1,
@@ -2142,7 +2159,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "medical-examination",
+    type: "medical-examination-type",
     mentionText: "ECHOTOMOGRAPHIE THYROIDIENNE ET CERVICALE",
     mentionId: "",
     confidence: 1,
@@ -2192,7 +2209,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "birth-date",
+    type: "patient-birthdate",
     mentionText: "27/02/1964",
     mentionId: "",
     confidence: 1,
@@ -2300,7 +2317,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "medical-examination",
+    type: "medical-examination-type",
     mentionText: "ECHOTOMOGRAPHIE THYROIDIENNE ET CERVICALE",
     mentionId: "",
     confidence: 1,
@@ -2350,7 +2367,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "birth-date",
+    type: "patient-birthdate",
     mentionText: "27/02/1964",
     mentionId: "",
     confidence: 1,
@@ -2458,7 +2475,7 @@ const documentAi = [
       ],
       content: "",
     },
-    type: "date-examination",
+    type: "medical-examination-date",
     mentionText: "27/02/2024",
     mentionId: "",
     confidence: 1,

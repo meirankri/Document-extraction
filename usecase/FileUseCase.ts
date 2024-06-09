@@ -71,8 +71,6 @@ class FileUseCase {
   }
 
   async handleMultipleFiles(): Promise<ExtractDataArgument | null> {
-    console.log("entrez");
-
     const pdfToAnalyse = [];
     try {
       for await (const file of this.files) {

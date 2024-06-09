@@ -15,8 +15,8 @@ class DataExtractionUseCase {
   async extractData(
     documents: PDF | ExtractDataArgument
   ): Promise<DataExtracted | undefined> {
-    if (this.dataExtractionRepository.handleFiles) {
-      return this.dataExtractionRepository.handleFiles(documents as PDF);
+    if (this.dataExtractionRepository.handleFile) {
+      return this.dataExtractionRepository.handleFile(documents as PDF);
     }
     if (this.dataExtractionRepository.handleMultipleFiles)
       return this.dataExtractionRepository.handleMultipleFiles(

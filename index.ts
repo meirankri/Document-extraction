@@ -3,7 +3,6 @@ dotenv.config();
 import express, { Request, Response } from "express";
 import FileUseCase from "./usecase/FileUseCase";
 import StorageUseCase from "./usecase/StorageUseCase";
-import DataExtractionUseCase from "./usecase/DataExtractionUseCase";
 
 import FirebaseStorage from "./services/FirebaseStorage";
 import FirebaseFilePdfRepository from "./services/FirebaseFilePdfRepository";

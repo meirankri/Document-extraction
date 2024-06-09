@@ -1,5 +1,6 @@
 import { DocumentProcessorServiceClient } from "@google-cloud/documentai";
 import { DocumentAiDocument } from "../types/interfaces";
+import { logger } from "../utils/logger";
 import path from "path";
 
 const cred = {
@@ -35,13 +36,13 @@ export const processDocument = async (
       mimeType: "application/pdf",
     },
   };
-  // TODO il faut cleaner les informations d'entites vu qu'on peut avoir des caracteres autres comme une virgule après le nom
+
   try {
     const [result] = await client.processDocument(request);
     const { document } = result;
     return document;
   } catch (error) {
-    console.log("docuemnt ai error", error);
+    logger({ message: "Error processing document", context: error }).error();
     return null;
   }
 };
