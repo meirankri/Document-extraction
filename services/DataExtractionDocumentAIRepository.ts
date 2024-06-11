@@ -14,7 +14,7 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const patientInfo = infos.filter((info) => info.page === i)[0];
-      fileWithInfos.push({ file, info: patientInfo });
+      fileWithInfos.push({ file, info: patientInfo || {} });
     }
     return fileWithInfos;
   }

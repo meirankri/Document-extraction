@@ -6,16 +6,16 @@ import { removeExtension } from "./format";
 
 export const uploadFile = (
   file: BufferAndFileInfo,
-  folder: string
+  folder: string,
+  mimetype: string = "application/pdf",
+  ext: string = "pdf"
 ): Promise<string> => {
   const fileRef = bucket.file(
-    `${folder}/${Date.now()}-${removeExtension(file.fileInfos.filename)}.${
-      file.fileInfos.ext
-    }`
+    `${folder}/${Date.now()}-${removeExtension(file.fileInfos.filename)}.${ext}`
   );
   const blobStream = fileRef.createWriteStream({
     metadata: {
-      contentType: file.fileInfos.mimetype,
+      contentType: mimetype,
       cacheControl: "public, max-age=31536000",
     },
   });
@@ -60,13 +60,19 @@ export const getAllFiles = async ({
   sortedFunction?: (files: File[]) => File[];
 }): Promise<File[] | []> => {
   try {
-    const [files] = await bucket.getFiles({
-      prefix: folder,
-      maxResults,
-    });
-    if (!sortedFunction) return files || [];
+    const normalizedFolder = folder.endsWith("/") ? folder : `${folder}/`;
 
-    return sortedFunction(files) || [];
+    const [files] = await bucket.getFiles({
+      prefix: normalizedFolder,
+    });
+
+    const filteredFiles = files.filter((file) => !file.name.endsWith("/"));
+    const limitedFiles = maxResults
+      ? filteredFiles.slice(0, maxResults)
+      : filteredFiles;
+    if (!sortedFunction) return limitedFiles || [];
+
+    return sortedFunction(limitedFiles) || [];
   } catch (error) {
     console.error("Failed to retrieve files:", error);
     return [];

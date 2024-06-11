@@ -19,10 +19,10 @@ export const sendEmailWithAttachment = async ({
   emailSubject: string;
   file: string | null;
 }) => {
-  const sender = "meirankri@gmail.com";
+  const sender = process.env.MAIL_FROM || "";
 
   const rawEmail = `From: ${sender}
-To: ${sender}
+To: ${mailTo}
 Subject: ${emailSubject}
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="NextPart"
@@ -53,7 +53,7 @@ ${file}
       return true;
     })
     .catch((error) => {
-      console.error("error while sending this email ", rawEmail, error);
+      console.error("error while sending this email ", error);
       return false;
     });
 };

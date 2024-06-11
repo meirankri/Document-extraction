@@ -9,8 +9,9 @@ import {
   UploadedFiles,
 } from "../types/interfaces";
 import path from "path";
-import { convertDocxToPdf, extractPageFromPdf } from "../utils/pdfLib";
+import { extractPageFromPdf } from "../utils/pdfLib";
 import { contentType, isPdf } from "../utils/checker";
+import { convertDocToPdf } from "../utils/conversion";
 
 class FSFilePdfRepository implements IFileRepository {
   async deleteFiles(files: EnhancedFile[]): Promise<void> {
@@ -38,7 +39,7 @@ class FSFilePdfRepository implements IFileRepository {
     return Promise.resolve(file);
   }
   async contentType(file: Buffer): Promise<string> {
-    return contentType(file);
+    return contentType(file) || "";
   }
 
   async fileToPDF(file: FileFromUpload): Promise<Buffer | null> {
@@ -61,8 +62,8 @@ class FSFilePdfRepository implements IFileRepository {
       pdf = await pdfDoc.embedPng(fileData);
     } else if (mimetype === ".jpg" || mimetype === ".jpeg") {
       pdf = await pdfDoc.embedJpg(fileData);
-    } else if (mimetype === ".docx") {
-      const docxPdf = await convertDocxToPdf(fileData);
+    } else if (mimetype === ".docx" || mimetype === ".doc") {
+      const docxPdf = await convertDocToPdf(fileData);
       return docxPdf && Buffer.from(docxPdf);
     } else {
       console.error(`Unsupported file type: ${mimetype}`);

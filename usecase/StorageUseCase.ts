@@ -9,6 +9,7 @@ import {
   UploadedFiles,
 } from "../types/interfaces";
 import FileRepositoryFactory from "../factories/FileRepositoryFactory";
+import { logger } from "../utils/logger";
 
 class StorageUseCase {
   private fileRepositoryFactory: typeof FileRepositoryFactory;
@@ -45,8 +46,12 @@ class StorageUseCase {
       const pdf = await this.fileRepositoryFactory
         .createFileRepository(file)
         .fileToPDF(file);
+
       if (!pdf) {
-        //TODO voir ce qu'il faut faire peut etre envoyer un mail avec les infos
+        logger({
+          message: "Error converting file to pdf",
+          context: file,
+        }).error();
         continue;
       }
       const fileInfo = this.fileRepositoryFactory

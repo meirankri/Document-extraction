@@ -3,7 +3,7 @@ export const logger = ({
   context,
 }: {
   message: string;
-  context: unknown;
+  context?: unknown;
 }) => {
   return {
     info: () => console.log(message, context),

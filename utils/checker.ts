@@ -1,4 +1,4 @@
-import { fromBuffer } from "file-type";
+import { parse } from "file-type-mime";
 
 export const isEmpty = (obj: unknown): boolean => {
   if (obj === null || obj === undefined) {
@@ -26,7 +26,7 @@ export const isPdf = (buffer: Buffer): boolean => {
 };
 
 export const contentType = async (file: Buffer): Promise<string> => {
-  const type = await fromBuffer(file);
+  const type = parse(file);
 
-  return type ? type.mime : "application/octet-stream";
+  return type ? type.mime : "";
 };

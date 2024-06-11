@@ -18,10 +18,9 @@ class DataVerificationUseCase {
   }> {
     const filesAndData: FileWithInfo[] = [];
     const filesToDelete: UploadedFile[] = [];
-    console.log("file", filesWithInfo);
 
-    for (const fileInfo of filesWithInfo) {
-      const { info, file } = fileInfo;
+    for await (const fileInfo of filesWithInfo) {
+      const { info = {}, file } = fileInfo;
       delete info.page;
 
       const resultInfo = { ...info };
@@ -33,11 +32,13 @@ class DataVerificationUseCase {
         filesToDelete.push(file);
       } else {
         try {
-          await this.notificationRepository.notifyUser(
+          const mailSended = await this.notificationRepository.notifyUser(
             fileInfo,
             checkingMessage
           );
-          filesToDelete.push(file);
+          if (mailSended) {
+            filesToDelete.push(file);
+          }
         } catch (error) {
           console.error(
             "This file has not been sent to email to be reclassified",
@@ -66,17 +67,10 @@ class DataVerificationUseCase {
 
     for (let i = 0; i < filedsToCheck.length; i++) {
       if (!fileWithInfo.info[filedsToCheck[i]]) {
-        console.log(fileWithInfo.info, "champ manquant");
-
         return "Un champ manquant";
       }
     }
     if (!isValidDate(fileWithInfo.info.patientBirthDate)) {
-      console.log(
-        fileWithInfo.info.patientBirthDate,
-        "La date de naissance n'est pas une date"
-      );
-
       return "La date de naissance n'est pas une date";
     }
 

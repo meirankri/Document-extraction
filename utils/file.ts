@@ -30,7 +30,6 @@ const streamToBase64 = (stream: NodeJS.ReadableStream): Promise<string> => {
   });
 };
 
-// Fonction pour convertir le contenu d'un File en base64
 export const convertFirebaseFileToBase64 = async (
   file: FirebaseFile
 ): Promise<string> => {

@@ -77,6 +77,7 @@ class FileUseCase {
         const isAPDF = this.fileRepository.checkIfItIsAPDF(file);
         if (isAPDF) {
           const _file = await this.fileRepository.extractFirstPage(file);
+
           const infos = {
             file: _file,
             contentType: await this.fileRepository.contentType(file),
@@ -84,6 +85,7 @@ class FileUseCase {
           pdfToAnalyse.push(infos);
         } else {
           const _file = await this.fileRepository.fileToBuffer(file);
+
           const infos = {
             file: _file,
             contentType: await this.fileRepository.contentType(file),
@@ -99,6 +101,7 @@ class FileUseCase {
 
       return null;
     }
+
     return pdfToAnalyse;
   }
 

@@ -1,5 +1,6 @@
 # Étape 1: Définir l'image de base
 FROM node:20 as builder
+RUN apt-get update && apt-get install -y libreoffice-common
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /app
@@ -23,6 +24,7 @@ WORKDIR /app
 
 RUN mkdir -p /app/dist/secrets/
 COPY ./data-extraction-zana.json /app/dist/secrets/service-account.json
+COPY ./firebase-service-account.json /app/dist/secrets/firebase-account.json
 
 # Copier les fichiers nécessaires depuis l'étape de construction
 COPY --from=builder /app/dist ./dist

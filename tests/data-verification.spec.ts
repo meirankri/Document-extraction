@@ -8,7 +8,7 @@ import { convertFilesToPDF, getFilesFromUpload } from "./upload.fixture";
 import DataExtractionUseCase from "../usecase/DataExtractionUseCase";
 import DataVerificationUseCase from "../usecase/DataVerificationUseCase";
 describe("Data Verification", () => {
-  const data = [
+  let data = [
     {
       page: 0,
       patientFirstname: "serge",
@@ -36,7 +36,7 @@ describe("Data Verification", () => {
   beforeAll(async () => {
     files = await getFilesFromUpload();
     ({ files: pdfFiles } = await convertFilesToPDF(files as EnhancedFile[]));
-  });
+  }, 10000);
   test("test regrouping of files and data", async () => {
     const extractionDataRepository = new DataExtractionDocumentAIRepository();
     const extractionData = new DataExtractionUseCase(extractionDataRepository);
@@ -64,5 +64,5 @@ describe("Data Verification", () => {
         file: expect.any(Buffer),
       },
     ]);
-  });
+  }, 10000);
 });

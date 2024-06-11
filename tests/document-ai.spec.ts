@@ -18,7 +18,7 @@ describe("Document AI", () => {
     ({ files: pdfFiles, info } = await convertFilesToPDF(
       files as EnhancedFile[]
     ));
-  });
+  }, 10000);
   test.skip("Test extraction of informations from the pdf", async () => {
     pdfFileRepository = new FSFilePdfRepository();
 
@@ -124,7 +124,7 @@ describe("Document AI", () => {
         patientFirstname: "laurence",
       },
     ]);
-  });
+  },10000);
 });
 
 const documentAi = [

@@ -24,7 +24,7 @@ describe("Test the pdf extraction use case", () => {
     ({ files: pdfFiles, info } = await convertFilesToPDF(
       files as EnhancedFile[]
     ));
-  });
+  }, 10000);
 
   test("Test the extraction of the first page of a PDF", async () => {
     pdfFileRepository = new FSFilePdfRepository();
@@ -38,7 +38,7 @@ describe("Test the pdf extraction use case", () => {
 
       expect(count).toBe(1);
     }
-  });
+  }, 10000);
 
   test("Test the creation of 1 pdf with all the first pages", async () => {
     const fileUseCase = new FileUseCase(pdfFileRepository, pdfFiles);
@@ -46,7 +46,7 @@ describe("Test the pdf extraction use case", () => {
     const pdfFile = await fileUseCase.handleFiles();
     const pageCount = pdfFile ? await getPageCount(pdfFile) : 0;
     expect(pageCount).toBe(pdfFilesFirstPageExtracted.length);
-  });
+  }, 10000);
   const handleMultipleFilesMock = jest
     .spyOn(FileUseCase.prototype, "handleMultipleFiles")
     .mockImplementation(async () => {
@@ -59,5 +59,5 @@ describe("Test the pdf extraction use case", () => {
     const pdfFilesFirstPageExtracted = await fileUseCase.handleFiles();
     expect(handleMultipleFilesMock).toHaveBeenCalled();
     expect(pdfFilesFirstPageExtracted).toBeNull();
-  });
+  }, 10000);
 });

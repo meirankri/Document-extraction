@@ -29,8 +29,10 @@ const documentAi = async (
   if (!pdfBytes) {
     return { scannedFilesAndData, scannedFilesToDelete };
   }
+
   try {
     const data = await extractionData.extractData(pdfBytes);
+
     if (data) {
       const filesWithInfos = extractionData.linkFileWithInfos(
         documents as UploadedFiles,
@@ -48,12 +50,14 @@ const documentAi = async (
           filesToDelete: scannedFilesToDelete,
         } = await verificationUseCase.verifyData(filesWithInfos));
       } catch (error) {
-        logger({ message: "verify data as not been run", context: error })
-          .error;
+        logger({
+          message: "verify data as not been run",
+          context: error,
+        }).error();
       }
     }
   } catch (error) {
-    logger({ message: "Error extracting data", context: error }).error;
+    logger({ message: "Error extracting data", context: error }).error();
   }
   return { scannedFilesAndData, scannedFilesToDelete };
 };

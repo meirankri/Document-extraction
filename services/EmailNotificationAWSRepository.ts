@@ -12,7 +12,7 @@ class EmailNotificationAWSRepository implements INotificationRepository {
     fileWithInfo: FileWithInfo,
     checkingMessage: string
   ): Promise<boolean> {
-    const fileWithInfoString = Object.entries(fileWithInfo.info)
+    const fileWithInfoString = Object.entries(fileWithInfo.info || {})
       .map(([key, value]) => `${key}: ${value}`)
       .join("\n");
     const content = `
@@ -28,7 +28,7 @@ class EmailNotificationAWSRepository implements INotificationRepository {
     }
 
     return sendEmailWithAttachment({
-      mailTo: process.env.MAIL_TO as string,
+      mailTo: process.env.MAIL_TO || "",
       emailContent: content,
       emailSubject: "Ce document n'a pas été classé",
       file: attachement,

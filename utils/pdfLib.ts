@@ -5,6 +5,7 @@ import { PDFDocument, PageSizes } from "pdf-lib";
 
 import { EnhancedMulterFile, PDF } from "../types/interfaces";
 import { convertDocToHtml } from "./conversion";
+import { logger } from "./logger";
 
 export const imageToPdf = async (
   file: EnhancedMulterFile
@@ -46,6 +47,8 @@ export const convertDocxToPdf = async (
   docxFile: EnhancedMulterFile | Buffer
 ): Promise<Buffer | null> => {
   const htmlContent = await convertDocToHtml(docxFile);
+  if (!htmlContent) return null;
+
   const styledHtmlContent = `
     <html>
       <head>
@@ -77,7 +80,10 @@ export const convertDocxToPdf = async (
     await browser.close();
     return pdfBuffer;
   } catch (error) {
-    console.error("Erreur lors de la conversion du HTML en PDF:", error);
+    logger({
+      message: "Error converting HTML to PDF",
+      context: error,
+    }).error();
     return null;
   }
 };

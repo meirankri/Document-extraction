@@ -7,6 +7,7 @@ import FSStorage from "../services/FSStorageRepository";
 import StorageUseCase from "../usecase/StorageUseCase";
 import { EnhancedFile } from "../types/interfaces";
 import { getFilesFromUpload } from "./upload.fixture";
+import { isPdf } from "../utils/checker";
 
 describe("Test different file types to PDF conversion ", () => {
   let files: EnhancedFile[] = [];
@@ -29,35 +30,26 @@ describe("Test different file types to PDF conversion ", () => {
       imageFile,
     ] as EnhancedFile[]);
 
-    function isPdf(buffer: Buffer): boolean {
-      const pdfHeader = "%PDF-";
-      const header = buffer.subarray(0, 5).toString("utf-8");
-      return header === pdfHeader;
-    }
-
     expect(isPdf(pdfFiles[0].file)).toBe(true);
   });
 
   test("Test docx to PDF conversion", async () => {
-    const imageFile = (files as EnhancedFile[]).find((file) => {
+    const docFiles = (files as EnhancedFile[]).filter((file) => {
       const mimetype = file?.name
         ? path.extname(file.name).toLowerCase()
         : undefined;
       return mimetype === ".docx" || mimetype === ".doc";
     });
 
-    const pdfFiles = await storageUseCase.convertFileToPDF([
-      imageFile,
-    ] as EnhancedFile[]);
+    const pdfFiles = await storageUseCase.convertFileToPDF(
+      docFiles as EnhancedFile[]
+    );
 
-    function isPdf(buffer: Buffer): boolean {
-      const pdfHeader = "%PDF-";
-      const header = buffer.subarray(0, 5).toString("utf-8");
-      return header === pdfHeader;
-    }
-
-    expect(isPdf(pdfFiles[0].file)).toBe(true);
-  });
+    expect(pdfFiles.length).toBe(docFiles.length);
+    pdfFiles.forEach((pdf) => {
+      expect(isPdf(pdf.file)).toBe(true);
+    });
+  }, 10000);
 
   test("Test PDF to stay a PDF", async () => {
     const imageFile = (files as EnhancedFile[]).find((file) => {
@@ -70,12 +62,6 @@ describe("Test different file types to PDF conversion ", () => {
     const pdfFiles = await storageUseCase.convertFileToPDF([
       imageFile,
     ] as EnhancedFile[]);
-
-    function isPdf(buffer: Buffer): boolean {
-      const pdfHeader = "%PDF-";
-      const header = buffer.subarray(0, 5).toString("utf-8");
-      return header === pdfHeader;
-    }
 
     expect(isPdf(pdfFiles[0].file)).toBe(true);
   });

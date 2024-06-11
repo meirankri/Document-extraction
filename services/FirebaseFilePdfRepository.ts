@@ -9,11 +9,11 @@ import {
 } from "../types/interfaces";
 import {
   imageToPdf,
-  convertDocxToPdf,
   checkIfPdfIsReadable,
   extractPageFromPdf,
 } from "../utils/pdfLib";
 import { deleteFile } from "../utils/firebase";
+import { convertDocToPdf } from "../utils/conversion";
 
 class FirebaseFilePdfRepository implements IFileRepository {
   getFileInfo(file: EnhancedMulterFile): FileInfos {
@@ -46,9 +46,10 @@ class FirebaseFilePdfRepository implements IFileRepository {
     }
     if (
       file.mimetype ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      file.mimetype === "application/msword"
     ) {
-      pdfFile = await convertDocxToPdf(file);
+      pdfFile = await convertDocToPdf(file);
     }
     return pdfFile ? Buffer.from(pdfFile) : null;
   }
@@ -101,6 +102,8 @@ class FirebaseFilePdfRepository implements IFileRepository {
           width: width,
           height: height,
         });
+      } else {
+        pdfDoc.addPage();
       }
     }
 
