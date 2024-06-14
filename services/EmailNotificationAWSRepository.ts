@@ -23,9 +23,9 @@ class EmailNotificationAWSRepository implements INotificationRepository {
     if (fileWithInfo.file instanceof GoogleFile) {
       attachement = await convertFirebaseFileToBase64(fileWithInfo.file);
     }
-    if (fileWithInfo.file instanceof File) {
-      attachement = await convertFileToBase64(fileWithInfo.file);
-    }
+    // if (fileWithInfo.file instanceof File) {
+    //   attachement = await convertFileToBase64(fileWithInfo.file);
+    // }
 
     return sendEmailWithAttachment({
       mailTo: process.env.MAIL_TO || "",

@@ -26,10 +26,10 @@ class LogNotificationRepository implements INotificationRepository {
       attachement = await convertFileToBase64(fileWithInfo.file);
     }
 
-    // logger({
-    //   message: "log notification",
-    //   context: { file: attachement, content },
-    // }).info();
+    logger({
+      message: "log notification",
+      context: { file: attachement, content },
+    }).info();
 
     return Promise.resolve(true);
   }

@@ -32,13 +32,13 @@ class FileUseCase {
           console.error("Error converting file google file to base64", error);
         }
       }
-      if (file instanceof File) {
-        try {
-          base64File = await convertFileToBase64(file);
-        } catch (error) {
-          console.error("Error converting file: File to base64", error);
-        }
-      }
+      // if (file instanceof File) {
+      //   try {
+      //     base64File = await convertFileToBase64(file);
+      //   } catch (error) {
+      //     console.error("Error converting file: File to base64", error);
+      //   }
+      // }
       base64Files.push({ file: base64File, info: fileWithInfo.info });
     }
     return base64Files;
