@@ -1,5 +1,6 @@
 import { File as GoogleFile } from "@google-cloud/storage";
 import { protos } from "@google-cloud/documentai";
+import { Response } from "express";
 
 export interface EnhancedMulterFile extends Express.Multer.File {
   type: "multer";
@@ -84,4 +85,8 @@ export interface INotificationRepository {
     fileWithInfo: FileWithInfo,
     checkingMessage: string
   ): Promise<boolean>;
+}
+
+export interface ExtendedResponse extends Response {
+  sentry?: string; 
 }

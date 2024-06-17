@@ -3,7 +3,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=local nodemon --watch . --ext ts,json --ignore src/**/*.spec.ts --exec  ts-node index",
+    "dev": " nodemon --watch . --ext ts,json --ignore src/**/*.spec.ts --exec  ts-node index",
     "copy": "copyfiles data-extraction-zana.json dist && copyfiles firebase-service-account.json dist",
     "build": "yarn copy && tsc",
     "start": "NODE_ENV=production node ./dist/index.js",
@@ -30,7 +30,10 @@
     "@google-cloud/documentai": "^8.6.0",
     "@google-cloud/storage": "^7.11.0",
     "@google-cloud/vertexai": "^1.2.0",
+    "@sentry/node": "^8.9.2",
+    "@sentry/profiling-node": "^8.9.2",
     "@types/multer": "^1.4.11",
+    "@types/sqlite3": "^3.1.11",
     "copyfiles": "^2.4.1",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
@@ -44,6 +47,7 @@
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^1.1.1",
     "puppeteer": "^22.10.0",
+    "sqlite3": "^5.1.7",
     "ts-node": "^10.9.2"
   }
 }

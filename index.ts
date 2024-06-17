@@ -1,5 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config();
+require("./instrument.js");
+const Sentry = require("@sentry/node");
+(global as any).__basedir = __dirname;
+
 import express, { Request, Response } from "express";
 import FileUseCase from "./usecase/FileUseCase";
 import StorageUseCase from "./usecase/StorageUseCase";
@@ -18,6 +22,8 @@ import { isEmpty } from "./utils/checker";
 import FileRepositoryFactory from "./factories/FileRepositoryFactory";
 import documentAi from "./usecase/scripts/document-ai";
 import { logger } from "./utils/logger";
+import { ExtendedResponse } from "./types/interfaces";
+import db from "./libs/sqlite";
 
 const app = express();
 
@@ -131,6 +137,31 @@ app.post("/extract", async (req: Request, res: Response) => {
 });
 
 const PORT = process.env.PORT || 8080;
+
+Sentry.setupExpressErrorHandler(app);
+
+// Optional fallthrough error handler
+app.use(function onError(
+  err: Error,
+  req: Request,
+  res: ExtendedResponse,
+  next: Function
+) {
+  // Assurez-vous que le middleware d'erreur ne s'active que lorsqu'il y a vraiment une erreur.
+  if (!err) {
+    return next();
+  }
+
+  // The error id is attached to `res.sҽntry` to be returned
+  // and optionally displayed to the user for support.
+  res.statusCode = 500;
+  res.end(res.sentry + "\n");
+});
+app.get("/debug-sentry", function mainHandler(req, res) {
+  console.log("debug-sentry");
+  // res.send("Hello Sentry World!");
+  throw new Error("My first Sentry error!");
+});
 
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
