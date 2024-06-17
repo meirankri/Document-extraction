@@ -26,7 +26,7 @@ export const uploadFile = (
         reject({ message: "error with firebase upload", error, file })
       )
       .on("finish", async () => {
-        resolve("File uploaded successfully.");
+        resolve(fileRef.name);
       })
       .end(file.file);
   });

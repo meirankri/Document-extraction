@@ -26,29 +26,38 @@ describe("Test different file types to PDF conversion ", () => {
       return mimetype === ".png" || mimetype === ".jpg" || mimetype === ".jpeg";
     });
 
-    const pdfFiles = await storageUseCase.convertFileToPDF([
-      imageFile,
-    ] as EnhancedFile[]);
-
-    expect(isPdf(pdfFiles[0].file)).toBe(true);
+    const pdfFiles = await storageUseCase.convertFileToPDF(
+      imageFile as EnhancedFile
+    );
+    if (!pdfFiles) throw new Error("No image to  pdf files found");
+    expect(isPdf(pdfFiles.file)).toBe(true);
   });
 
   test("Test docx to PDF conversion", async () => {
-    const docFiles = (files as EnhancedFile[]).filter((file) => {
+    const docFile = (files as EnhancedFile[]).find((file) => {
       const mimetype = file?.name
         ? path.extname(file.name).toLowerCase()
         : undefined;
-      return mimetype === ".docx" || mimetype === ".doc";
+      return mimetype === ".doc";
+    });
+    const docxFile = (files as EnhancedFile[]).find((file) => {
+      const mimetype = file?.name
+        ? path.extname(file.name).toLowerCase()
+        : undefined;
+      return mimetype === ".docx";
     });
 
-    const pdfFiles = await storageUseCase.convertFileToPDF(
-      docFiles as EnhancedFile[]
+    const pdfDocFile = await storageUseCase.convertFileToPDF(
+      docFile as EnhancedFile
     );
+    if (!pdfDocFile) throw new Error("No doc pdf files found");
+    const pdfDocxFile = await storageUseCase.convertFileToPDF(
+      docxFile as EnhancedFile
+    );
+    if (!pdfDocxFile) throw new Error("No docx pdf files found");
 
-    expect(pdfFiles.length).toBe(docFiles.length);
-    pdfFiles.forEach((pdf) => {
-      expect(isPdf(pdf.file)).toBe(true);
-    });
+    expect(isPdf(pdfDocFile.file)).toBe(true);
+    expect(isPdf(pdfDocxFile.file)).toBe(true);
   }, 10000);
 
   test("Test PDF to stay a PDF", async () => {
@@ -59,10 +68,10 @@ describe("Test different file types to PDF conversion ", () => {
       return mimetype === ".pdf";
     });
 
-    const pdfFiles = await storageUseCase.convertFileToPDF([
-      imageFile,
-    ] as EnhancedFile[]);
-
-    expect(isPdf(pdfFiles[0].file)).toBe(true);
+    const pdfFile = await storageUseCase.convertFileToPDF(
+      imageFile as EnhancedFile
+    );
+    if (!pdfFile) throw new Error("No pdf files found");
+    expect(isPdf(pdfFile.file)).toBe(true);
   });
 });

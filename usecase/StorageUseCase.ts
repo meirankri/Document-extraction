@@ -2,9 +2,6 @@ import { tenIfMoreThanTen } from "../utils/number";
 import {
   BufferAndFileInfo,
   FileFromUpload,
-  FileInfos,
-  IFileRepository,
-  PDF,
   StorageRepository,
   UploadedFiles,
 } from "../types/interfaces";
@@ -38,7 +35,7 @@ class StorageUseCase {
     return tenIfMoreThanTen(files.length);
   }
 
-  async convertFileToPDF(
+  async convertFilesToPDF(
     files: FileFromUpload[]
   ): Promise<BufferAndFileInfo[]> {
     const pdfFiles = [];
@@ -65,8 +62,35 @@ class StorageUseCase {
     return pdfFiles;
   }
 
+  async convertFileToPDF(
+    file: FileFromUpload
+  ): Promise<BufferAndFileInfo | null> {
+    const pdf = await this.fileRepositoryFactory
+      .createFileRepository(file)
+      .fileToPDF(file);
+
+    if (!pdf) {
+      logger({
+        message: "Error converting file to pdf",
+        context: file,
+      }).error();
+      return null;
+    }
+    const fileInfo = this.fileRepositoryFactory
+      .createFileRepository(file)
+      .getFileInfo(file);
+    return {
+      file: pdf,
+      fileInfos: fileInfo,
+    };
+  }
+
   getFile(name: string, folder: string) {
     return this.storageRepository.getFile(name, folder);
+  }
+
+  async fileUpload(file: BufferAndFileInfo, folder: string) {
+    return this.storageRepository.uploadFile(file, folder);
   }
 
   async filesUpload(files: BufferAndFileInfo[], folder: string) {

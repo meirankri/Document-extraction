@@ -20,7 +20,7 @@ export const convertFilesToPDF = async (
 ): Promise<{ files: UploadedFiles; info: FileInfos[] }> => {
   const fsStorage = new FSStorage();
   const storageUseCase = new StorageUseCase(fsStorage, FileRepositoryFactory);
-  const pdfFiles = await storageUseCase.convertFileToPDF(
+  const pdfFiles = await storageUseCase.convertFilesToPDF(
     files as EnhancedFile[]
   );
 
