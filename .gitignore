@@ -42,3 +42,5 @@ docker-compose.yml
 document-ia.json
 data-extraction-zana.json
 firebase-service-account.json
+
+*.db
