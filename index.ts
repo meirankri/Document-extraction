@@ -73,16 +73,15 @@ app.post(
     }
     if (uploadedFile) {
       try {
-        const documentInserted = await insertDocument(documentID, uploadedFile);
-        console.log("documentInserted", documentInserted);
-        if (!documentInserted) {
-          return res.status(500).send("Error inserting document.");
-        }
+        await insertDocument(documentID, uploadedFile);
       } catch (error) {
         logger({
           message: "Error calling inserting document function",
           context: error,
         }).error();
+        return res
+          .status(500)
+          .json({ message: "Error inserting document.", error });
       }
     }
     res.status(200).send("Files uploaded.");
