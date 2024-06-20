@@ -39,6 +39,7 @@ export const processDocument = async (
 
   try {
     const [result] = await client.processDocument(request);
+
     const { document } = result;
     return document;
   } catch (error) {

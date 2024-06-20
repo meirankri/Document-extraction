@@ -1,3 +1,4 @@
+import { ObjectType } from "../types/interfaces";
 import {
   compose,
   removeAccents,
@@ -6,17 +7,19 @@ import {
 
 export const findMostSimilarExamination = (
   variable: string | undefined,
-  exams: string[]
+  examsMap: ObjectType
 ): string | null => {
   if (!variable) return null;
 
   const processText = compose(removeAccents, removeSpecialCharactersAndHyphens);
 
-  for (const exam of exams) {
-    if (
-      processText(exam).toLowerCase() === processText(variable).toLowerCase()
-    ) {
-      return exam;
+  const normalizedSearchText = processText(variable).toLowerCase();
+  for (const key in examsMap) {
+    if (examsMap.hasOwnProperty(key)) {
+      const normalizedKey = processText(key).toLowerCase();
+      if (normalizedKey === normalizedSearchText) {
+        return examsMap[key];
+      }
     }
   }
 

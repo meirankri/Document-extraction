@@ -1,6 +1,8 @@
+import { File as GoogleFile } from "@google-cloud/storage";
 import { PDFDocument } from "pdf-lib";
 
 import {
+  DocumentsData,
   EnhancedMulterFile,
   FileInfos,
   FirebaseFile,
@@ -16,6 +18,17 @@ import { deleteFile } from "../utils/firebase";
 import { convertDocToPdf } from "../utils/conversion";
 
 class FirebaseFilePdfRepository implements IFileRepository {
+  getDocumentID(
+    file: UploadedFile,
+    documentNamesAndIDs: DocumentsData[]
+  ): string | null {
+    if (!file) return null;
+    const name = (file as GoogleFile).name;
+    const document = documentNamesAndIDs.find(
+      (doc) => doc.documentName === name
+    );
+    return document ? document.documentID : null;
+  }
   getFileInfo(file: EnhancedMulterFile): FileInfos {
     return {
       filename: file.originalname,
@@ -66,12 +79,13 @@ class FirebaseFilePdfRepository implements IFileRepository {
     return buffer;
   }
 
-  checkIfItIsAPDF(file: FirebaseFile): boolean {
-    return file ? file.metadata.contentType === "application/pdf" : false;
+  async checkIfItIsAPDF(file: FirebaseFile): Promise<boolean> {
+    return file ? (await this.contentType(file)) === "application/pdf" : false;
   }
 
   async contentType(file: UploadedFile): Promise<string> {
-    return (file as FirebaseFile).metadata.contentType || "";
+    const [metadata] = await (file as FirebaseFile).getMetadata();
+    return metadata.contentType || "";
   }
 
   async createPdf(files: { file: Buffer | Uint8Array; contentType: string }[]) {

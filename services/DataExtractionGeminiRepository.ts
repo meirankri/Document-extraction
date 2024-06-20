@@ -27,7 +27,6 @@ class DataExtractionGeminiRepository implements IDataExtractionRepository {
       const fileAsString = bufferToBase64(doc.file as Buffer);
       const patientInfo =
         (await generateContent(fileAsString, doc.contentType)) || {};
-      console.log("patientInfo gemini", patientInfo);
 
       DataExtracted.push(patientInfo);
     }

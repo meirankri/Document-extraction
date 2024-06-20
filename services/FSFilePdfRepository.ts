@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import { PDFDocument } from "pdf-lib";
 import {
+  DocumentsData,
   EnhancedFile,
   FileFromUpload,
   FileInfos,
@@ -14,6 +15,12 @@ import { contentType, isPdf } from "../utils/checker";
 import { convertDocToPdf } from "../utils/conversion";
 
 class FSFilePdfRepository implements IFileRepository {
+  getDocumentID(
+    file: UploadedFile,
+    documentNamesAndIDs: DocumentsData[]
+  ): string | null {
+    throw new Error("Method not implemented.");
+  }
   async deleteFiles(files: EnhancedFile[]): Promise<void> {
     return Promise.all(
       files.map(async (file) => {
@@ -29,7 +36,7 @@ class FSFilePdfRepository implements IFileRepository {
     };
   }
 
-  checkIfItIsAPDF(file: Buffer): boolean {
+  async checkIfItIsAPDF(file: Buffer): Promise<boolean> {
     return isPdf(file);
   }
   async extractFirstPage(file: Buffer): Promise<Buffer | Uint8Array> {

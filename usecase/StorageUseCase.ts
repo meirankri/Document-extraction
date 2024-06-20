@@ -31,6 +31,10 @@ class StorageUseCase {
     return this.storageRepository.getAllFiles(folder, numberOfFiles);
   }
 
+  async getFilesByFileName(names: string[]): Promise<UploadedFiles> {
+    return this.storageRepository.getFilesByFileName(names);
+  }
+
   getLastTenFiles(files: UploadedFiles): number | null {
     return tenIfMoreThanTen(files.length);
   }

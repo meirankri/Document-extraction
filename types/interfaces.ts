@@ -49,6 +49,11 @@ export type ExtractDataArgument = {
   contentType: string;
 }[];
 
+export type DocumentsData = {
+  documentID: string;
+  documentName: string;
+};
+
 export type BufferAndFileInfo = { file: Buffer; fileInfos: FileInfos };
 
 export type FileWithInfo = { file: UploadedFile; info: PatientInfo };
@@ -58,10 +63,11 @@ export interface StorageRepository {
   getAllFiles(folder: string, numberOfFiles?: number): Promise<UploadedFiles>;
   uploadFile(file: BufferAndFileInfo, folder: string): Promise<string>;
   getFile(name: string, folder: string): UploadedFile;
+  getFilesByFileName(names: string[]): Promise<UploadedFiles>;
 }
 
 export interface IFileRepository {
-  checkIfItIsAPDF(file: UploadedFile): boolean;
+  checkIfItIsAPDF(file: UploadedFile): Promise<boolean>;
   extractFirstPage(file: UploadedFile): Promise<Uint8Array | Buffer>;
   fileToBuffer(file: UploadedFile): Promise<Buffer>;
   contentType(file: UploadedFile): Promise<string>;
@@ -72,6 +78,10 @@ export interface IFileRepository {
   createPdf(
     files: { file: Uint8Array | File; contentType: string }[]
   ): Promise<Uint8Array>;
+  getDocumentID(
+    file: UploadedFile,
+    documentNamesAndIDs: DocumentsData[]
+  ): string | null;
 }
 
 export interface IDataExtractionRepository {
@@ -87,6 +97,10 @@ export interface INotificationRepository {
   ): Promise<boolean>;
 }
 
+export type ObjectType = {
+  [key: string]: string;
+};
+
 export interface ExtendedResponse extends Response {
-  sentry?: string; 
+  sentry?: string;
 }

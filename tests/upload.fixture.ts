@@ -33,6 +33,22 @@ export const convertFilesToPDF = async (
 export const fakeData = [
   {
     page: 0,
+    medicalExamination: "echo-doppler pulse couleur des troncs supra-aortiques",
+    examinationDate: "15 décembre 2020",
+    patientFirstname: "christine",
+    patientBirthDate: "19/3/1944",
+    patientLastname: "teyssier",
+  },
+  {
+    page: 1,
+    patientBirthDate: "5/11/1939",
+    examinationDate: "18/01/2024",
+    patientLastname: "khamous",
+    patientFirstname: "boukhobza",
+    medicalExamination: "glycemie a jeun",
+  },
+  {
+    page: 0,
     patientFirstname: "daniel",
     examinationDate: "05/04/2024",
     medicalExamination: "echographie cardiaque trans-thoracique",

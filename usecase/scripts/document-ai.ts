@@ -20,7 +20,6 @@ const documentAi = async (
     documents as UploadedFiles
   );
   const pdfBytes = await fileUseCase.handleFiles();
-
   const extractionDataRepository = new DataExtractionDocumentAIRepository();
   const extractionData = new DataExtractionUseCase(extractionDataRepository);
   let scannedFilesAndData = null,

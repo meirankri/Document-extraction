@@ -1,34 +1,39 @@
-import { findMostSimilarExamination } from "../medical"; // Assure-toi de corriger le chemin d'importation
+import { findMostSimilarExamination } from "../medical";
 
 describe("findMostSimilarExamination", () => {
-  test("should return null if variable is undefined", () => {
-    const exams = ["Physics", "Chemistry", "Mathematics"];
-    expect(findMostSimilarExamination(undefined, exams)).toBeNull();
+  const examsMap = {
+    Audiogramme: "Audiology Test",
+    Audiométrie: "Hearing Measurement",
+    "Prothèse auditive": "Hearing Aid Service",
+    Échodoppler: "Echo-Doppler Test",
+  };
+
+  test("should return null for undefined input", () => {
+    expect(findMostSimilarExamination(undefined, examsMap)).toBeNull();
   });
 
-  test("should return null if no exams are similar", () => {
-    const variable = "History";
-    const exams = ["Physics", "Chemistry", "Mathematics"];
-    expect(findMostSimilarExamination(variable, exams)).toBeNull();
+  test("should return null when no matches are found", () => {
+    expect(findMostSimilarExamination("X-ray", examsMap)).toBeNull();
   });
 
-  test("should return null if an exam are vaguely similar", () => {
-    const variable = "History";
-    const exams = ["Physics", "historycity", "Mathematics"];
-    expect(findMostSimilarExamination(variable, exams)).toBeNull();
-  });
-
-  test("should return the most similar exam", () => {
-    const variable = "history and medicine";
-    const exams = ["Physics", "History", "Mathematics", "History and medicine"];
-    expect(findMostSimilarExamination(variable, exams)).toBe(
-      "History and medicine"
+  test("should handle accents and special characters correctly", () => {
+    expect(findMostSimilarExamination("Audiometrie", examsMap)).toBe(
+      "Hearing Measurement"
+    );
+    expect(findMostSimilarExamination("échodoppler", examsMap)).toBe(
+      "Echo-Doppler Test"
     );
   });
 
-  test("should handle cases with accents and special characters correctly", () => {
-    const variable = "Café-au-lait";
-    const exams = ["Café au lait", "Coffee", "Tea"];
-    expect(findMostSimilarExamination(variable, exams)).toBe("Café au lait");
+  test("should return correct examination when an exact match is found", () => {
+    expect(findMostSimilarExamination("Audiogramme", examsMap)).toBe(
+      "Audiology Test"
+    );
+  });
+
+  test("should be case insensitive", () => {
+    expect(findMostSimilarExamination("audiogramme", examsMap)).toBe(
+      "Audiology Test"
+    );
   });
 });

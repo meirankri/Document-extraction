@@ -5,9 +5,13 @@ import {
   EnhancedFile,
   StorageRepository,
   UploadedFile,
+  UploadedFiles,
 } from "../types/interfaces";
 
 class FSStorageRepository implements StorageRepository {
+  async getFilesByFileName(names: string[]): Promise<UploadedFiles> {
+    throw new Error("Method not implemented.");
+  }
   async getAllFiles(
     directoryPath: string,
     numberOfFiles: number

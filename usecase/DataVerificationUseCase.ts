@@ -5,7 +5,7 @@ import {
 } from "../types/interfaces";
 import { isValidDate } from "../utils/date";
 import { findMostSimilarExamination } from "../utils/medical";
-import { medicalExaminations } from "../constants/medical";
+import { medicalExaminationMap } from "../constants/medical";
 
 class DataVerificationUseCase {
   constructor(
@@ -76,7 +76,7 @@ class DataVerificationUseCase {
 
     const medicalExamination = findMostSimilarExamination(
       fileWithInfo.info.medicalExamination,
-      medicalExaminations
+      medicalExaminationMap
     );
 
     return medicalExamination

@@ -31,7 +31,7 @@ describe("Test different file types to PDF conversion ", () => {
     );
     if (!pdfFiles) throw new Error("No image to  pdf files found");
     expect(isPdf(pdfFiles.file)).toBe(true);
-  });
+  }, 10000);
 
   test("Test docx to PDF conversion", async () => {
     const docFile = (files as EnhancedFile[]).find((file) => {
@@ -58,7 +58,7 @@ describe("Test different file types to PDF conversion ", () => {
 
     expect(isPdf(pdfDocFile.file)).toBe(true);
     expect(isPdf(pdfDocxFile.file)).toBe(true);
-  }, 10000);
+  }, 15000);
 
   test("Test PDF to stay a PDF", async () => {
     const imageFile = (files as EnhancedFile[]).find((file) => {

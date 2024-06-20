@@ -20,6 +20,7 @@ class DataExtractionDocumentAIRepository implements IDataExtractionRepository {
   }
   async handleFile(document: PDF): Promise<PatientInfo[]> {
     const { entities } = (await processDocument(document)) || {};
+
     return this.extractDataFromEntities(entities);
   }
 

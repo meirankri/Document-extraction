@@ -1,3 +1,4 @@
+import fs from "fs/promises";
 import { File as GoogleFile } from "@google-cloud/storage";
 import {
   UploadedFiles,
@@ -6,6 +7,8 @@ import {
   FileWithInfo,
   Base64FileWithInfo,
   ExtractDataArgument,
+  PatientInfo,
+  DocumentsData,
 } from "../types/interfaces";
 import {
   convertFileToBase64,
@@ -17,6 +20,25 @@ class FileUseCase {
     private readonly fileRepository: IFileRepository,
     private readonly files: UploadedFiles
   ) {}
+
+  combineInfoWithID(
+    filesWithInfo: FileWithInfo[],
+    documentNamesAndIDs: DocumentsData[]
+  ): { info: PatientInfo; documentID: string }[] {
+    const infos = [];
+    for (const fileWithInfo of filesWithInfo) {
+      const info = fileWithInfo.info;
+      const file = fileWithInfo.file;
+      if (!file) continue;
+      const documentID = this.fileRepository.getDocumentID(
+        file,
+        documentNamesAndIDs
+      );
+      if (!documentID) continue;
+      infos.push({ info, documentID });
+    }
+    return infos;
+  }
 
   async filesToBase64(
     filesWithInfo: FileWithInfo[]
@@ -74,7 +96,8 @@ class FileUseCase {
     const pdfToAnalyse = [];
     try {
       for await (const file of this.files) {
-        const isAPDF = this.fileRepository.checkIfItIsAPDF(file);
+        const isAPDF = await this.fileRepository.checkIfItIsAPDF(file);
+
         if (isAPDF) {
           const _file = await this.fileRepository.extractFirstPage(file);
 
@@ -85,7 +108,6 @@ class FileUseCase {
           pdfToAnalyse.push(infos);
         } else {
           const _file = await this.fileRepository.fileToBuffer(file);
-
           const infos = {
             file: _file,
             contentType: await this.fileRepository.contentType(file),

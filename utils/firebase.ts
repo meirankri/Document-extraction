@@ -1,5 +1,5 @@
 import { File } from "@google-cloud/storage";
-
+import path from "path";
 import { bucket } from "../libs/firebase";
 import { BufferAndFileInfo } from "../types/interfaces";
 import { removeExtension } from "./format";
@@ -89,4 +89,14 @@ export const sortFilesByDate = (
 
     return order === "asc" ? (timeA < timeB ? -1 : 1) : timeA > timeB ? -1 : 1;
   });
+};
+
+export const getFilesByFileName = async (
+  fileNames: string[]
+): Promise<File[] | []> => {
+  const files = fileNames.map((fileName) => {
+    return bucket.file(fileName);
+  });
+
+  return Promise.all(files);
 };

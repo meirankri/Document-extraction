@@ -14,6 +14,7 @@ import FirebaseFilePdfRepository from "./services/FirebaseFilePdfRepository";
 import { checkMimeType } from "./middelwares/multer";
 import { checkDocumentId } from "./middelwares/document-id";
 import {
+  EnhancedFile,
   FileFromUpload,
   FileWithInfo,
   UploadedFiles,
@@ -24,14 +25,14 @@ import FileRepositoryFactory from "./factories/FileRepositoryFactory";
 import documentAi from "./usecase/scripts/document-ai";
 import { logger } from "./utils/logger";
 import { ExtendedResponse } from "./types/interfaces";
-import db, { insertDocument } from "./libs/sqlite";
+import { deleteDocuments, getDocuments, insertDocument } from "./libs/sqlite";
 
 const app = express();
 
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 
-const firebaseFolder = "documents";
+const firebaseFolder = process.env.UPLOAD_FOLDER || "";
 
 app.post(
   "/upload",
@@ -44,7 +45,6 @@ app.post(
     };
 
     const documentID = req.body.documentID;
-    console.log("documentID", documentID);
 
     const firebaseRepository = new FirebaseStorage();
     const storageUseCase = new StorageUseCase(
@@ -62,8 +62,6 @@ app.post(
     let uploadedFile = "";
     try {
       uploadedFile = await storageUseCase.fileUpload(pdfFile, firebaseFolder);
-
-      console.log("uploadedFile", uploadedFile);
     } catch (error) {
       logger({
         message: "Error uploading files",
@@ -89,6 +87,12 @@ app.post(
 );
 
 app.post("/extract", async (req: Request, res: Response) => {
+  const documents = await getDocuments();
+  if (!documents) {
+    return res.status(200).send("No documents found.");
+  }
+  const documentNames = documents.map((document) => document.documentName);
+
   const firebaseRepository = new FirebaseStorage();
   const pdfFileRepository = new FirebaseFilePdfRepository();
 
@@ -98,22 +102,26 @@ app.post("/extract", async (req: Request, res: Response) => {
   );
   let filesFromFirebase: UploadedFiles = [];
   try {
-    filesFromFirebase = await storageUseCase.getFiles(firebaseFolder, 10);
-  } catch (error) {}
-  if (isEmpty(filesFromFirebase)) {
-    return res.status(500).send("Error getting files from firebase.");
+    filesFromFirebase = await storageUseCase.getFilesByFileName(documentNames);
+  } catch (error) {
+    logger({
+      message: "error getting files from firebase",
+      context: error,
+    });
+  }
+
+  if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 2) {
+    return res.status(400).send("Not enough scanned files.");
   }
 
   const fileUseCase = new FileUseCase(pdfFileRepository, filesFromFirebase);
 
   let scannedFilesAndData: FileWithInfo[] | null = null,
     scannedFilesToDelete: UploadedFiles | null = null;
-  if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 10) {
-    return res.status(400).send("Not enough scanned files.");
-  }
+
   try {
     ({ scannedFilesAndData, scannedFilesToDelete } = await documentAi(
-      filesFromFirebase as UploadedFiles
+      filesFromFirebase
     ));
   } catch (error) {}
 
@@ -126,13 +134,16 @@ app.post("/extract", async (req: Request, res: Response) => {
   }
 
   try {
-    const base64Files = await fileUseCase.filesToBase64([
-      ...(scannedFilesAndData || []),
-    ]);
-
-    if (!isEmpty(scannedFilesToDelete)) {
+    const infosAndIDs = fileUseCase.combineInfoWithID(
+      scannedFilesAndData,
+      documents
+    );
+    if (scannedFilesToDelete && !isEmpty(scannedFilesToDelete)) {
       try {
         await storageUseCase.deleteFiles(scannedFilesToDelete);
+        await deleteDocuments(
+          scannedFilesToDelete.map((file) => (file as EnhancedFile)?.name)
+        );
       } catch (error) {
         logger({
           message: "Error deleting files",
@@ -141,13 +152,33 @@ app.post("/extract", async (req: Request, res: Response) => {
       }
     }
 
-    res.json(!isEmpty(base64Files) ? base64Files : { message: "NO_DATA" });
+    try {
+      for (let i = 0; i < infosAndIDs.length; i++) {
+        const element = infosAndIDs[i];
+        if (process.env.OCR_URL) {
+          await fetch(process.env.OCR_URL, {
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+            body: JSON.stringify(element),
+          });
+        }
+      }
+    } catch (error) {
+      logger({
+        message: "Error with the sending of the information to medical link",
+        context: error,
+      });
+    }
+    res.json(!isEmpty(infosAndIDs) ? infosAndIDs : { message: "NO_DATA" });
   } catch (error) {
     logger({
-      message: "Error converting files to base64",
+      message: "Error combine infos with ids",
       context: error,
     }).error();
-    res.status(500).send("Error converting files to base64");
+    res.status(500).send("Error combine infos with ids");
   }
 });
 
@@ -155,27 +186,18 @@ const PORT = process.env.PORT || 8080;
 
 Sentry.setupExpressErrorHandler(app);
 
-// Optional fallthrough error handler
 app.use(function onError(
   err: Error,
   req: Request,
   res: ExtendedResponse,
   next: Function
 ) {
-  // Assurez-vous que le middleware d'erreur ne s'active que lorsqu'il y a vraiment une erreur.
   if (!err) {
     return next();
   }
 
-  // The error id is attached to `res.sҽntry` to be returned
-  // and optionally displayed to the user for support.
   res.statusCode = 500;
   res.end(res.sentry + "\n");
-});
-app.get("/debug-sentry", function mainHandler(req, res) {
-  console.log("debug-sentry");
-  // res.send("Hello Sentry World!");
-  throw new Error("My first Sentry error!");
 });
 
 app.listen(PORT, () => {

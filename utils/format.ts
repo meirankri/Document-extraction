@@ -17,3 +17,22 @@ export const compose = (...funcs: Function[]): Function => {
     return funcs.reduce((acc, currentFunc) => currentFunc(acc), initialValue);
   };
 };
+
+export const toCamelCase = (text: string) => {
+  return text
+    .toLowerCase()
+    .split(" ")
+    .map((word, index) => {
+      if (index === 0) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join("");
+};
+
+export const slugify = (text: string) => {
+  return removeSpecialCharactersAndHyphens(
+    removeAccents(
+      text.toString().toLowerCase().replace("'", "").replace(/(|)/g, "")
+    )
+  );
+};
