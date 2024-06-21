@@ -7,7 +7,6 @@ if (process.env.NODE_ENV === "production") {
     dsn: "https://8c9c24e8d70ccfbeb90e69e9f8033682@o4507430325649408.ingest.de.sentry.io/4507430332006480",
     integrations: [nodeProfilingIntegration()],
 
-    environment: process.env.NODE_ENV || "development",
     // Performance Monitoring
     tracesSampleRate: 1.0, //  Capture 100% of the transactions
 
