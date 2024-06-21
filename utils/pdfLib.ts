@@ -38,7 +38,10 @@ export const imageToPdf = async (
 
     return await pdfDoc.save();
   } catch (error) {
-    console.error("Error during the image conversion to pdf:", error);
+    logger({
+      message: "Error during the image conversion to pdf:",
+      context: error,
+    });
     return null;
   }
 };
@@ -101,7 +104,10 @@ export const checkIfPdfIsReadable = async (
 
     return text.length > 0;
   } catch (error) {
-    console.error("Erreur lors de la vérification du PDF:", error);
+    logger({
+      message: "Error during the PDF verification:",
+      context: error,
+    });
     return false;
   }
 };

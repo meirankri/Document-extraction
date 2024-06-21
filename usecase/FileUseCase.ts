@@ -14,6 +14,7 @@ import {
   convertFileToBase64,
   convertFirebaseFileToBase64,
 } from "../utils/file";
+import { logger } from "../utils/logger";
 
 class FileUseCase {
   constructor(
@@ -51,16 +52,12 @@ class FileUseCase {
         try {
           base64File = await convertFirebaseFileToBase64(file);
         } catch (error) {
-          console.error("Error converting file google file to base64", error);
+          logger({
+            message: "Error converting file google file to base64",
+            context: error,
+          }).error();
         }
       }
-      // if (file instanceof File) {
-      //   try {
-      //     base64File = await convertFileToBase64(file);
-      //   } catch (error) {
-      //     console.error("Error converting file: File to base64", error);
-      //   }
-      // }
       base64Files.push({ file: base64File, info: fileWithInfo.info });
     }
     return base64Files;
@@ -77,7 +74,10 @@ class FileUseCase {
       try {
         isReadable = await this.fileRepository.isReadblePDF(file);
       } catch (error) {
-        console.error("Error checking if it is a scanned pdf.", error);
+        logger({
+          message: "Error checking if it is a scanned pdf.",
+          context: error,
+        }).error();
       }
       if (!isReadable) {
         scannedPdfs.push(file);
@@ -116,10 +116,11 @@ class FileUseCase {
         }
       }
     } catch (error) {
-      console.error(
-        "Error extracting the first page of the pdf or converting the file to buffer",
-        error
-      );
+      logger({
+        message:
+          "Error extracting the first page of the pdf or converting the file to buffer",
+        context: error,
+      }).error();
 
       return null;
     }

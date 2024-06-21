@@ -6,6 +6,7 @@ import {
 import { isValidDate } from "../utils/date";
 import { findMostSimilarExamination } from "../utils/medical";
 import { medicalExaminationMap } from "../constants/medical";
+import { logger } from "../utils/logger";
 
 class DataVerificationUseCase {
   constructor(
@@ -40,11 +41,10 @@ class DataVerificationUseCase {
             filesToDelete.push(file);
           }
         } catch (error) {
-          console.error(
-            "This file has not been sent to email to be reclassified",
-            fileInfo,
-            error
-          );
+          logger({
+            message: "This file has not been sent to email to be reclassified",
+            context: { fileInfo, error },
+          }).error();
         }
       }
     }

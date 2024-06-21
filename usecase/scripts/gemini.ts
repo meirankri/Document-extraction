@@ -5,6 +5,7 @@ import DataExtractionGeminiRepository from "../../services/DataExtractionGeminiR
 import DataExtractionUseCase from "../DataExtractionUseCase";
 import EmailNotificationAWSRepository from "../../services/EmailNotificationAWSRepository";
 import DataVerificationUseCase from "../DataVerificationUseCase";
+import { logger } from "../../utils/logger";
 
 const extractDataFromGemini = async (
   documents: UploadedFiles
@@ -43,7 +44,10 @@ const extractDataFromGemini = async (
         filesToDelete: readableFilesToDelete,
       } = await verificationUseCase.verifyData(filesWithInfos));
     } catch (error) {
-      console.error("verify data as not been run", error);
+      logger({
+        message: "error verifying data",
+        context: error,
+      });
     }
   }
   return { readableFilesAndData, readableFilesToDelete };

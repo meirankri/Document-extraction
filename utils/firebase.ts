@@ -3,6 +3,7 @@ import path from "path";
 import { bucket } from "../libs/firebase";
 import { BufferAndFileInfo } from "../types/interfaces";
 import { removeExtension } from "./format";
+import { logger } from "./logger";
 
 export const uploadFile = (
   file: BufferAndFileInfo,
@@ -45,7 +46,10 @@ export const getFile = (name: string, folder: string): File | null => {
   try {
     return bucket.file(`${folder}/${name}`);
   } catch (error) {
-    console.error("Failed to retrieve file:", error);
+    logger({
+      message: "Error getting file",
+      context: { name, folder },
+    }).error();
     return null;
   }
 };
@@ -74,7 +78,10 @@ export const getAllFiles = async ({
 
     return sortedFunction(limitedFiles) || [];
   } catch (error) {
-    console.error("Failed to retrieve files:", error);
+    logger({
+      message: "Error getting files",
+      context: { folder, maxResults },
+    }).error();
     return [];
   }
 };

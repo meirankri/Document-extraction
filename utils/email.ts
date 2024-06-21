@@ -1,4 +1,5 @@
 import { SESClient, SendRawEmailCommand } from "@aws-sdk/client-ses";
+import { logger } from "./logger";
 
 const client = new SESClient({
   region: process.env.AWS_REGION,
@@ -53,7 +54,10 @@ ${file}
       return true;
     })
     .catch((error) => {
-      console.error("error while sending this email ", error);
+      logger({
+        message: "Error sending email",
+        context: error,
+      }).error();
       return false;
     });
 };

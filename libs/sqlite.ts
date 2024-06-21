@@ -11,9 +11,14 @@ const dbPath = path.join(
 
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
-    console.error("Error opening database", err.message);
+    logger({
+      message: "Error opening database",
+      context: err.message,
+    }).error();
   } else {
-    console.log("Connected to the SQLite database.");
+    logger({
+      message: "Connected to the SQLite database.",
+    }).info();
   }
 });
 

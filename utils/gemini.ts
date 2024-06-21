@@ -7,6 +7,7 @@ import path from "path";
 
 import { promptForDocument } from "../constants/gemini";
 import { PatientInfo } from "../types/interfaces";
+import { logger } from "./logger";
 
 const jsonFilePath = path.join(
   __dirname,
@@ -67,7 +68,10 @@ const generateContent = async (
 
     return JSON.parse(jsonString);
   } catch (error) {
-    console.error("An error occurred during content generation:", error);
+    logger({
+      message: "An error occurred during content generation",
+      context: error,
+    }).error();
     return null;
   }
 };

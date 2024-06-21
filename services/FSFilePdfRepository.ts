@@ -13,6 +13,7 @@ import path from "path";
 import { extractPageFromPdf } from "../utils/pdfLib";
 import { contentType, isPdf } from "../utils/checker";
 import { convertDocToPdf } from "../utils/conversion";
+import { logger } from "../utils/logger";
 
 class FSFilePdfRepository implements IFileRepository {
   getDocumentID(
@@ -73,7 +74,10 @@ class FSFilePdfRepository implements IFileRepository {
       const docxPdf = await convertDocToPdf(fileData);
       return docxPdf && Buffer.from(docxPdf);
     } else {
-      console.error(`Unsupported file type: ${mimetype}`);
+      logger({
+        message: "Unsupported file type",
+        context: { mimetype, file },
+      }).error();
       return null;
     }
 

@@ -7,6 +7,7 @@ import {
   UploadedFile,
   UploadedFiles,
 } from "../types/interfaces";
+import { logger } from "../utils/logger";
 
 class FSStorageRepository implements StorageRepository {
   async getFilesByFileName(names: string[]): Promise<UploadedFiles> {
@@ -39,7 +40,10 @@ class FSStorageRepository implements StorageRepository {
 
       return fileInfos.slice(0, numberOfFiles);
     } catch (error) {
-      console.error("Error reading directory:", error);
+      logger({
+        message: "Error reading directory",
+        context: error,
+      }).error();
       return [];
     }
   }

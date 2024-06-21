@@ -10,10 +10,16 @@ export const logger = ({
   return {
     info: () => console.log(message, context),
     error: () => {
-      Sentry.setContext("error context", { context: JSON.stringify(context) });
+      let contextStringified;
+      try {
+        contextStringified = context ? JSON.stringify(context) : null;
+      } catch (error) {
+        contextStringified = "Error stringifying context";
+      }
+      Sentry.setContext("error context", {
+        context: contextStringified,
+      });
       Sentry.captureException(new Error(message));
-      console.log("env", process.env.NODE_ENV);
-
       process.env.NODE_ENV !== "production" && console.error(message, context);
     },
     warn: () => console.warn(message, context),

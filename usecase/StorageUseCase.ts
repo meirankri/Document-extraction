@@ -104,7 +104,10 @@ class StorageUseCase {
     }
     return Promise.all(filesPromises)
       .catch((error) => {
-        console.error("error bulk upload", error);
+        logger({
+          message: "Error uploading files",
+          context: error,
+        }).error();
         return error;
       })
       .then((filesNames) => filesNames);
