@@ -16,6 +16,9 @@ import { convertDocToPdf } from "../utils/conversion";
 import { logger } from "../utils/logger";
 
 class FSFilePdfRepository implements IFileRepository {
+  deleteFile(filename: string): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
   getDocumentID(
     file: UploadedFile,
     documentNamesAndIDs: DocumentsData[]

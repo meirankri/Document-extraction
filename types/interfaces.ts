@@ -73,6 +73,7 @@ export interface IFileRepository {
   contentType(file: UploadedFile): Promise<string>;
   fileToPDF(file: FileFromUpload): Promise<Buffer | null>;
   deleteFiles(files: UploadedFiles): Promise<void>;
+  deleteFile(filename: string): Promise<string>;
   isReadblePDF(file: UploadedFile): Promise<boolean>;
   getFileInfo(file: FileFromUpload): FileInfos;
   createPdf(

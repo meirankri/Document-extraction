@@ -77,6 +77,8 @@ app.post(
           message: "Error calling inserting document function",
           context: error,
         }).error();
+        await storageUseCase.deleteFile(uploadedFile);
+
         return res
           .status(500)
           .json({ message: "Error inserting document.", error });

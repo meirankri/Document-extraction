@@ -41,6 +41,9 @@ class FirebaseFilePdfRepository implements IFileRepository {
       () => {}
     );
   }
+  async deleteFile(filename: string): Promise<string> {
+    return deleteFile(filename);
+  }
   async isReadblePDF(file: UploadedFile): Promise<boolean> {
     return this.fileToBuffer(file).then((buffer) => {
       return checkIfPdfIsReadable(buffer);

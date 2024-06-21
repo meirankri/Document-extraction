@@ -16,6 +16,9 @@ class FileRepositoryFactory {
   static deleteFilesRepository(): IFileRepository {
     return new FirebaseFilePdfRepository();
   }
+  static deleteFileRepository(): IFileRepository {
+    return new FirebaseFilePdfRepository();
+  }
 }
 
 export default FileRepositoryFactory;
