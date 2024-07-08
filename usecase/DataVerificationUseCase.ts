@@ -1,11 +1,12 @@
+import { medicalExaminationMap as medicalExaminationMapQuery } from "../libs/mysql";
 import {
   FileWithInfo,
   INotificationRepository,
   UploadedFile,
+  ObjectType,
 } from "../types/interfaces";
 import { isValidDate } from "../utils/date";
 import { findMostSimilarExamination } from "../utils/medical";
-import { medicalExaminationMap } from "../constants/medical";
 import { logger } from "../utils/logger";
 
 class DataVerificationUseCase {
@@ -19,14 +20,20 @@ class DataVerificationUseCase {
   }> {
     const filesAndData: FileWithInfo[] = [];
     const filesToDelete: UploadedFile[] = [];
-
+    const medicalExaminationMap = await medicalExaminationMapQuery();
     for await (const fileInfo of filesWithInfo) {
       const { info = {}, file } = fileInfo;
       delete info.page;
 
       const resultInfo = { ...info };
 
-      const checkingMessage = this.checkFields({ info: resultInfo, file });
+      const checkingMessage = await this.checkFields(
+        {
+          info: resultInfo,
+          file,
+        },
+        medicalExaminationMap
+      );
 
       if (checkingMessage === "success") {
         filesAndData.push({ info: resultInfo, file });
@@ -52,7 +59,10 @@ class DataVerificationUseCase {
     return { filesAndData, filesToDelete };
   }
 
-  private checkFields(fileWithInfo: FileWithInfo): string {
+  private async checkFields(
+    fileWithInfo: FileWithInfo,
+    medicalExaminationMap: ObjectType
+  ): Promise<string> {
     const filedsToCheck: [
       "patientFirstname",
       "patientLastname",

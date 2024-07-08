@@ -25,7 +25,7 @@ import FileRepositoryFactory from "./factories/FileRepositoryFactory";
 import documentAi from "./usecase/scripts/document-ai";
 import { logger } from "./utils/logger";
 import { ExtendedResponse } from "./types/interfaces";
-import { deleteDocuments, getDocuments, insertDocument } from "./libs/sqlite";
+import { deleteDocuments, getDocuments, insertDocument } from "./libs/mysql";
 
 const app = express();
 
@@ -71,7 +71,8 @@ app.post(
     }
     if (uploadedFile) {
       try {
-        await insertDocument(documentID, uploadedFile);
+        const documentIdParsed = parseInt(documentID, 10);
+        await insertDocument(documentIdParsed, uploadedFile);
       } catch (error) {
         logger({
           message: "Error calling inserting document function",
@@ -112,8 +113,8 @@ app.post("/extract", async (req: Request, res: Response) => {
     });
   }
 
-  if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 2) {
-    return res.status(400).send("Not enough scanned files.");
+  if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 10) {
+    return res.status(200).send("Not enough scanned files.");
   }
 
   const fileUseCase = new FileUseCase(pdfFileRepository, filesFromFirebase);
