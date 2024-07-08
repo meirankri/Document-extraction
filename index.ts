@@ -84,7 +84,7 @@ app.post(
           .json({ message: "Error inserting document.", error });
       }
     }
-    res.status(200).send("Files uploaded.");
+    res.status(200).json({ success: true });
   }
 );
 
