@@ -4,7 +4,7 @@ import { DocumentsData, ObjectType } from "../types/interfaces";
 
 const db = () => {
   return mysql.createConnection({
-    uri: "mysql://avnadmin:AVNS_o_SUkJHl63BayTRIgVx@mysql-c7bdfef-chneor-2cb6.e.aivencloud.com:17814/defaultdb",
+    uri: process.env.DATABASE_URL,
   });
 };
 
