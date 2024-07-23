@@ -1,11 +1,7 @@
 import { File as GoogleFile } from "@google-cloud/storage";
-import { FirebaseFile } from "../types/interfaces";
 import { FileWithInfo, INotificationRepository } from "../types/interfaces";
 import { sendEmailWithAttachment } from "../utils/email";
-import {
-  convertFirebaseFileToBase64,
-  convertFileToBase64,
-} from "../utils/file";
+import { convertFirebaseFileToBase64 } from "../utils/file";
 
 class EmailNotificationAWSRepository implements INotificationRepository {
   async notifyUser(
@@ -23,9 +19,6 @@ class EmailNotificationAWSRepository implements INotificationRepository {
     if (fileWithInfo.file instanceof GoogleFile) {
       attachement = await convertFirebaseFileToBase64(fileWithInfo.file);
     }
-    // if (fileWithInfo.file instanceof File) {
-    //   attachement = await convertFileToBase64(fileWithInfo.file);
-    // }
 
     return sendEmailWithAttachment({
       mailTo: process.env.MAIL_TO || "",
