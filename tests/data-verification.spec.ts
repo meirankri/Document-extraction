@@ -19,7 +19,7 @@ describe("Data Verification", () => {
       examinationDate: "5/4/2024",
       patientBirthDate: "11/12/1955",
       patientLastname: "leroy sismondino",
-      medicalExamination: "Prothèse dentaire fixe ou amovible",
+      medicalExamination: "ORTHOPLASTIE",
       patientFirstname: "daniel",
     },
     {
@@ -58,7 +58,7 @@ describe("Data Verification", () => {
           examinationDate: "5/4/2024",
           patientBirthDate: "11/12/1955",
           patientLastname: "leroy sismondino",
-          medicalExamination: "Prothèse dentaire fixe ou amovible",
+          medicalExamination: "ORTHOPLASTIE",
           patientFirstname: "daniel",
         },
         file: expect.any(Buffer),

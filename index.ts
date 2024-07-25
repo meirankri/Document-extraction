@@ -11,7 +11,10 @@ import StorageUseCase from "./usecase/StorageUseCase";
 import FirebaseStorage from "./services/FirebaseStorage";
 import FirebaseFilePdfRepository from "./services/FirebaseFilePdfRepository";
 
-import { checkMimeType } from "./middelwares/multer";
+import {
+  checkMimeType,
+  checkMimeTypeAndDocumentIds,
+} from "./middelwares/multer";
 import { checkDocumentId } from "./middelwares/document-id";
 import {
   EnhancedFile,
@@ -33,6 +36,72 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 
 const firebaseFolder = process.env.UPLOAD_FOLDER || "";
+
+interface FileInfo {
+  file: Express.Multer.File;
+  documentID: string;
+}
+
+interface CustomRequest extends Request {
+  fileInfos?: FileInfo[];
+}
+
+export const handleFilesUpload = async (req: CustomRequest, res: Response) => {
+  const fileInfos = req.fileInfos;
+
+  if (!fileInfos || fileInfos.length === 0) {
+    return res.status(400).json({ error: "No files provided" });
+  }
+
+  const firebaseRepository = new FirebaseStorage();
+  const storageUseCase = new StorageUseCase(
+    firebaseRepository,
+    FileRepositoryFactory
+  );
+
+  const results = [];
+
+  for (const fileInfo of fileInfos) {
+    try {
+      const result = await processFile(fileInfo, storageUseCase);
+      results.push(result);
+    } catch (error) {
+      logger({
+        message: "Error processing file",
+        context: { error, fileInfo },
+      }).error();
+      results.push({ success: false, documentID: fileInfo.documentID, error });
+    }
+  }
+
+  res.status(200).json({ results });
+};
+
+async function processFile(fileInfo: FileInfo, storageUseCase: StorageUseCase) {
+  const { file, documentID } = fileInfo;
+  const fileWithType = { ...file, type: "multer" };
+
+  const pdfFile = await storageUseCase.convertFileToPDF(
+    fileWithType as FileFromUpload
+  );
+
+  if (!pdfFile) {
+    throw new Error("Error converting file to PDF");
+  }
+
+  const uploadedFile = await storageUseCase.fileUpload(pdfFile, firebaseFolder);
+
+  const documentIdParsed = parseInt(documentID, 10);
+  if (isNaN(documentIdParsed)) {
+    throw new Error("Invalid document ID");
+  }
+
+  await insertDocument(documentIdParsed, uploadedFile);
+
+  return { success: true, documentID };
+}
+
+app.post("/uploads", checkMimeTypeAndDocumentIds, handleFilesUpload);
 
 app.post(
   "/upload",
@@ -113,7 +182,7 @@ app.post("/extract", async (req: Request, res: Response) => {
     });
   }
 
-  if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 10) {
+  if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 2) {
     return res.status(200).send("Not enough scanned files.");
   }
 
@@ -158,6 +227,7 @@ app.post("/extract", async (req: Request, res: Response) => {
     try {
       for (let i = 0; i < infosAndIDs.length; i++) {
         const element = infosAndIDs[i];
+        const elementFlat = { ...element.info, documentID: element.documentID };
         if (process.env.OCR_URL) {
           await fetch(process.env.OCR_URL, {
             headers: {
@@ -165,7 +235,7 @@ app.post("/extract", async (req: Request, res: Response) => {
               "Content-Type": "application/json",
             },
             method: "POST",
-            body: JSON.stringify(element),
+            body: JSON.stringify(elementFlat),
           });
         }
       }
