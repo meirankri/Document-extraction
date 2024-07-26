@@ -182,7 +182,7 @@ app.post("/extract", async (req: Request, res: Response) => {
     });
   }
 
-  if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 2) {
+  if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 10) {
     return res.status(200).send("Not enough scanned files.");
   }
 
