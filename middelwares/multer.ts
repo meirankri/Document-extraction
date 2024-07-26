@@ -53,9 +53,17 @@ export const checkMimeTypeAndDocumentIds: RequestHandler = (req, res, next) => {
     }
 
     const files = req.files as Express.Multer.File[];
-    const documentIDs = req.body.documentIDs
-      ? JSON.parse(req.body.documentIDs)
-      : [];
+    let documentIDs = [];
+    try {
+      documentIDs = req.body.documentIDs
+        ? JSON.parse(req.body.documentIDs)
+        : [];
+    } catch (error) {
+      logger({
+        message: "Error parsing documentIDs",
+        context: error,
+      }).error();
+    }
 
     if (!files || files.length === 0) {
       return res.status(400).json({ error: "No files uploaded" });
@@ -88,7 +96,6 @@ export const checkMimeTypeAndDocumentIds: RequestHandler = (req, res, next) => {
       });
     }
 
-    // Vérification des documentIDs
     const invalidDocumentIDs = fileInfos.filter(
       (fileInfo) =>
         !Number.isInteger(Number(fileInfo.documentID)) ||
