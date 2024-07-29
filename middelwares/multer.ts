@@ -72,7 +72,7 @@ export const checkMimeTypeAndDocumentIds: RequestHandler = (req, res, next) => {
     if (!Array.isArray(documentIDs) || documentIDs.length !== files.length) {
       return res.status(400).json({
         error:
-          "Le nombre de documentIDs ne correspond pas au nombre de fichiers.",
+          "DocumentIDs must be an array with the same length as the number of files uploaded",
       });
     }
 
