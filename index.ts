@@ -273,6 +273,17 @@ app.use(function onError(
   res.end(res.sentry + "\n");
 });
 
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  Sentry.captureException(reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  Sentry.captureException(error);
+  process.exit(1);
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
 });
