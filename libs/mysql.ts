@@ -25,6 +25,7 @@ export const insertDocument = async (
       message: "Error inserting document to mysql",
       context: error,
     }).error();
+    throw new Error(`Error inserting document to mysql: ${error}`);
   }
 };
 
