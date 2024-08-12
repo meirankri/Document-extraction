@@ -64,13 +64,22 @@ export const handleFilesUpload = async (req: CustomRequest, res: Response) => {
   for (const fileInfo of fileInfos) {
     try {
       const result = await processFile(fileInfo, storageUseCase);
+      if (!result.success) {
+        return res.status(500).json({
+          message: "Error inserting document.",
+          error: result.error,
+        });
+      }
       results.push(result);
     } catch (error) {
       logger({
         message: "Error processing file",
         context: { error, fileInfo },
       }).error();
-      results.push({ success: false, documentID: fileInfo.documentID, error });
+      return res.status(500).json({
+        message: "Error inserting document.",
+        error: error,
+      });
     }
   }
 
@@ -96,9 +105,9 @@ async function processFile(fileInfo: FileInfo, storageUseCase: StorageUseCase) {
     throw new Error("Invalid document ID");
   }
 
-  await insertDocument(documentIdParsed, uploadedFile);
+  const res = await insertDocument(documentIdParsed, uploadedFile);
 
-  return { success: true, documentID };
+  return { ...res, documentID };
 }
 
 app.post("/uploads", checkMimeTypeAndDocumentIds, handleFilesUpload);

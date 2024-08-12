@@ -13,19 +13,20 @@ export default db;
 export const insertDocument = async (
   documentID: number,
   documentName: string
-): Promise<void> => {
+) => {
   const conn = await db();
   try {
-    await conn.execute(
+    const res = await conn.execute(
       "INSERT INTO documents (document_id, document_name) VALUES (?, ?)",
       [documentID, documentName]
     );
+    return { success: true };
   } catch (error) {
     logger({
       message: "Error inserting document to mysql",
       context: error,
     }).error();
-    throw new Error(`Error inserting document to mysql: ${error}`);
+    return { success: false, error };
   }
 };
 
