@@ -40,7 +40,7 @@ export const checkMimeType: RequestHandler = (req, res, next) => {
   });
 };
 export const checkMimeTypeAndDocumentIds: RequestHandler = (req, res, next) => {
-  multer.array("files[]")(req, res, function (err: any) {
+  multer.array("files")(req, res, function (err: any) {
     if (err instanceof MulterError) {
       return res.status(500).json({ error: err.message });
     } else if (err) {
