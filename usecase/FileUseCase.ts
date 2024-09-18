@@ -22,18 +22,19 @@ class FileUseCase {
   combineInfoWithID(
     filesWithInfo: FileWithInfo[],
     documentNamesAndIDs: DocumentsData[]
-  ): { info: PatientInfo; documentID: string }[] {
+  ): { info: PatientInfo; documentID: string; status?: number }[] {
     const infos = [];
     for (const fileWithInfo of filesWithInfo) {
       const info = fileWithInfo.info;
       const file = fileWithInfo.file;
+      const status = fileWithInfo.status;
       if (!file) continue;
       const documentID = this.fileRepository.getDocumentID(
         file,
         documentNamesAndIDs
       );
       if (!documentID) continue;
-      infos.push({ info, documentID });
+      infos.push({ info, documentID, status });
     }
     return infos;
   }

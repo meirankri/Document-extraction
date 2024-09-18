@@ -35,6 +35,8 @@ const app = express();
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 
+const NUMBER_OF_FILES = process.env.NUMBER_OF_FILES || 2;
+
 const firebaseFolder = process.env.UPLOAD_FOLDER || "";
 
 interface FileInfo {
@@ -191,7 +193,10 @@ app.post("/extract", async (req: Request, res: Response) => {
     }).error();
   }
 
-  if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 10) {
+  if (
+    isEmpty(filesFromFirebase) ||
+    filesFromFirebase.length < (NUMBER_OF_FILES as number)
+  ) {
     return res.status(200).send("Not enough scanned files.");
   }
 
@@ -234,18 +239,33 @@ app.post("/extract", async (req: Request, res: Response) => {
     }
 
     try {
+      const sentRequests = new Set<string>();
+
       for (let i = 0; i < infosAndIDs.length; i++) {
         const element = infosAndIDs[i];
-        const elementFlat = { ...element.info, documentID: element.documentID };
-        if (process.env.OCR_URL) {
-          await fetch(process.env.OCR_URL, {
+        const elementFlat = {
+          ...element.info,
+          documentID: element.documentID,
+          status: element.status,
+        };
+        const requestBody = JSON.stringify(elementFlat);
+
+        if (!sentRequests.has(requestBody) && process.env.OCR_URL) {
+          const response = await fetch(process.env.OCR_URL, {
             headers: {
               Accept: "application/json",
               "Content-Type": "application/json",
             },
             method: "POST",
-            body: JSON.stringify(elementFlat),
+            body: requestBody,
           });
+
+          logger({
+            message: "Response from medical link",
+            context: { response, elementFlat },
+          }).info();
+
+          sentRequests.add(requestBody);
         }
       }
     } catch (error) {

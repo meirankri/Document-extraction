@@ -36,7 +36,6 @@ class DataVerificationUseCase {
       );
 
       if (checkingMessage === "success") {
-        filesAndData.push({ info: resultInfo, file });
         filesToDelete.push(file);
       } else {
         try {
@@ -54,6 +53,11 @@ class DataVerificationUseCase {
           }).error();
         }
       }
+      filesAndData.push({
+        info: resultInfo,
+        file,
+        status: checkingMessage === "success" ? 1 : 2,
+      });
     }
 
     return { filesAndData, filesToDelete };

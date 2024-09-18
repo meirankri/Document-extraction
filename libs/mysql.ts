@@ -36,7 +36,7 @@ export const getDocuments = async (
   const conn = await db();
   try {
     const [rows] = await conn.execute<RowDataPacket[]>(
-      `SELECT document_id, document_name FROM documents LIMIT ${numberOfDocuments}`
+      `SELECT document_id, document_name FROM documents order by id asc LIMIT ${numberOfDocuments}`
     );
     if (Array.isArray(rows)) {
       const documents = rows.map((row) => {

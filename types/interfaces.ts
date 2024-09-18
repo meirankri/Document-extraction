@@ -56,7 +56,11 @@ export type DocumentsData = {
 
 export type BufferAndFileInfo = { file: Buffer; fileInfos: FileInfos };
 
-export type FileWithInfo = { file: UploadedFile; info: PatientInfo };
+export type FileWithInfo = {
+  file: UploadedFile;
+  info: PatientInfo;
+  status?: number;
+};
 export type Base64FileWithInfo = { file: string | null; info: PatientInfo };
 
 export interface StorageRepository {
