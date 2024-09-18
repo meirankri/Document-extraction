@@ -188,7 +188,7 @@ app.post("/extract", async (req: Request, res: Response) => {
     logger({
       message: "error getting files from firebase",
       context: error,
-    });
+    }).error();
   }
 
   if (isEmpty(filesFromFirebase) || filesFromFirebase.length < 10) {
@@ -252,7 +252,7 @@ app.post("/extract", async (req: Request, res: Response) => {
       logger({
         message: "Error with the sending of the information to medical link",
         context: error,
-      });
+      }).error();
     }
     res.json(!isEmpty(infosAndIDs) ? infosAndIDs : { message: "NO_DATA" });
   } catch (error) {

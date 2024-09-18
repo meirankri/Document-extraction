@@ -10,10 +10,7 @@ import {
   PatientInfo,
   DocumentsData,
 } from "../types/interfaces";
-import {
-  convertFileToBase64,
-  convertFirebaseFileToBase64,
-} from "../utils/file";
+import { convertFirebaseFileToBase64 } from "../utils/file";
 import { logger } from "../utils/logger";
 
 class FileUseCase {
@@ -93,26 +90,59 @@ class FileUseCase {
   }
 
   async handleMultipleFiles(): Promise<ExtractDataArgument | null> {
-    const pdfToAnalyse = [];
+    const pdfToAnalyse: { file: Buffer | Uint8Array; contentType: string }[] =
+      [];
     try {
       for await (const file of this.files) {
-        const isAPDF = await this.fileRepository.checkIfItIsAPDF(file);
+        let isAPDF = false;
+        try {
+          isAPDF = await this.fileRepository.checkIfItIsAPDF(file);
+        } catch (error) {
+          logger({
+            message: "Error checking if it is a pdf",
+            context: error,
+          }).error();
+        }
 
+        let _file: Buffer | Uint8Array | null = null;
         if (isAPDF) {
-          const _file = await this.fileRepository.extractFirstPage(file);
-
-          const infos = {
-            file: _file,
-            contentType: await this.fileRepository.contentType(file),
-          };
-          pdfToAnalyse.push(infos);
+          try {
+            _file = await this.fileRepository.extractFirstPage(file);
+          } catch (error) {
+            logger({
+              message: "Error extracting the first page of the pdf",
+              context: error,
+            }).error();
+          }
         } else {
-          const _file = await this.fileRepository.fileToBuffer(file);
-          const infos = {
-            file: _file,
-            contentType: await this.fileRepository.contentType(file),
-          };
-          pdfToAnalyse.push(infos);
+          try {
+            _file = await this.fileRepository.fileToBuffer(file);
+          } catch (error) {
+            logger({
+              message: "Error converting the file to buffer",
+              context: error,
+            }).error();
+          }
+        }
+
+        if (_file) {
+          try {
+            const infos = {
+              file: _file,
+              contentType: await this.fileRepository.contentType(file),
+            };
+            pdfToAnalyse.push(infos);
+          } catch (error) {
+            logger({
+              message: "Error pushing the pdf to the array",
+              context: error,
+            }).error();
+          }
+        } else {
+          logger({
+            message: "File is null, skipping push to pdfToAnalyse",
+            context: { file },
+          }).warn();
         }
       }
     } catch (error) {
