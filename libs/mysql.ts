@@ -16,7 +16,7 @@ export const insertDocument = async (
 ) => {
   const conn = await db();
   try {
-    const res = await conn.execute(
+    await conn.execute(
       "INSERT INTO documents (document_id, document_name) VALUES (?, ?)",
       [documentID, documentName]
     );
@@ -33,10 +33,11 @@ export const insertDocument = async (
 export const getDocuments = async (
   numberOfDocuments: number = 10
 ): Promise<DocumentsData[] | false> => {
+  const folder = process.env.UPLOAD_FOLDER || "";
   const conn = await db();
   try {
     const [rows] = await conn.execute<RowDataPacket[]>(
-      `SELECT document_id, document_name FROM documents order by id asc LIMIT ${numberOfDocuments}`
+      `SELECT document_id, document_name FROM documents WHERE document_name LIKE '%${folder}%' LIMIT ${numberOfDocuments}`
     );
     if (Array.isArray(rows)) {
       const documents = rows.map((row) => {

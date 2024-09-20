@@ -1,8 +1,6 @@
-import fs from "fs/promises";
 import { File as GoogleFile } from "@google-cloud/storage";
 import {
   UploadedFiles,
-  UploadedFile,
   IFileRepository,
   FileWithInfo,
   Base64FileWithInfo,

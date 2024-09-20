@@ -8,7 +8,7 @@ export const logger = ({
   context?: unknown;
 }) => {
   return {
-    info: () => console.log(message, context),
+    info: () => console.info(message, context),
     error: () => {
       let contextStringified;
       try {

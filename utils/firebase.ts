@@ -1,5 +1,4 @@
 import { File } from "@google-cloud/storage";
-import path from "path";
 import { bucket } from "../libs/firebase";
 import { BufferAndFileInfo } from "../types/interfaces";
 import { removeExtension } from "./format";

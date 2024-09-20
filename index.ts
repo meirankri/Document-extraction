@@ -48,6 +48,41 @@ interface CustomRequest extends Request {
   fileInfos?: FileInfo[];
 }
 
+async function processFile(fileInfo: FileInfo, storageUseCase: StorageUseCase) {
+  const { file, documentID } = fileInfo;
+  const fileWithType = { ...file, type: "multer" };
+
+  try {
+    const pdfFile = await storageUseCase.convertFileToPDF(
+      fileWithType as FileFromUpload
+    );
+
+    if (!pdfFile) {
+      throw new Error("Error converting file to PDF");
+    }
+
+    const uploadedFile = await storageUseCase.fileUpload(
+      pdfFile,
+      firebaseFolder
+    );
+
+    const documentIdParsed = parseInt(documentID, 10);
+    if (isNaN(documentIdParsed)) {
+      throw new Error("Invalid document ID");
+    }
+
+    const res = await insertDocument(documentIdParsed, uploadedFile);
+
+    return { ...res, documentID };
+  } catch (error) {
+    logger({
+      message: "Error processing file",
+      context: { error, fileInfo },
+    }).error();
+    throw error;
+  }
+}
+
 export const handleFilesUpload = async (req: CustomRequest, res: Response) => {
   const fileInfos = req.fileInfos;
 
@@ -79,7 +114,7 @@ export const handleFilesUpload = async (req: CustomRequest, res: Response) => {
         context: { error, fileInfo },
       }).error();
       return res.status(500).json({
-        message: "Error inserting document.",
+        message: "Error processing document.",
         error: error,
       });
     }
@@ -87,30 +122,6 @@ export const handleFilesUpload = async (req: CustomRequest, res: Response) => {
 
   res.status(200).json({ results });
 };
-
-async function processFile(fileInfo: FileInfo, storageUseCase: StorageUseCase) {
-  const { file, documentID } = fileInfo;
-  const fileWithType = { ...file, type: "multer" };
-
-  const pdfFile = await storageUseCase.convertFileToPDF(
-    fileWithType as FileFromUpload
-  );
-
-  if (!pdfFile) {
-    throw new Error("Error converting file to PDF");
-  }
-
-  const uploadedFile = await storageUseCase.fileUpload(pdfFile, firebaseFolder);
-
-  const documentIdParsed = parseInt(documentID, 10);
-  if (isNaN(documentIdParsed)) {
-    throw new Error("Invalid document ID");
-  }
-
-  const res = await insertDocument(documentIdParsed, uploadedFile);
-
-  return { ...res, documentID };
-}
 
 app.post("/uploads", checkMimeTypeAndDocumentIds, handleFilesUpload);
 
@@ -191,6 +202,7 @@ app.post("/extract", async (req: Request, res: Response) => {
       message: "error getting files from firebase",
       context: error,
     }).error();
+    return res.status(500).send("Error getting files from firebase");
   }
 
   if (
@@ -226,10 +238,12 @@ app.post("/extract", async (req: Request, res: Response) => {
     );
     if (scannedFilesToDelete && !isEmpty(scannedFilesToDelete)) {
       try {
-        await storageUseCase.deleteFiles(scannedFilesToDelete);
-        await deleteDocuments(
+        const res = await deleteDocuments(
           scannedFilesToDelete.map((file) => (file as EnhancedFile)?.name)
         );
+        if (res) {
+          await storageUseCase.deleteFiles(scannedFilesToDelete);
+        }
       } catch (error) {
         logger({
           message: "Error deleting files",
