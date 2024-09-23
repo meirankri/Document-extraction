@@ -35,9 +35,7 @@ class DataVerificationUseCase {
         medicalExaminationMap
       );
 
-      if (checkingMessage === "success") {
-        filesToDelete.push(file);
-      } else {
+      if (checkingMessage !== "success") {
         try {
           const mailSended = await this.notificationRepository.notifyUser(
             fileInfo,
@@ -53,6 +51,8 @@ class DataVerificationUseCase {
           }).error();
         }
       }
+
+      filesToDelete.push(file);
       filesAndData.push({
         info: {...resultInfo, medicalExamination: medicalExamination || ""},
         file,
@@ -66,7 +66,7 @@ class DataVerificationUseCase {
   private async checkFields(
     fileWithInfo: FileWithInfo,
     medicalExaminationMap: ObjectType
-  ): Promise<{ medicalExamination: string | null, checkingMessage: string }> {
+  ): Promise<{ medicalExamination: string | undefined, checkingMessage: string }> {
     const fieldsToCheck: [
       "patientFirstname",
       "patientLastname",
@@ -91,7 +91,7 @@ class DataVerificationUseCase {
     const medicalExamination = findMostSimilarExamination(
       fileWithInfo.info.medicalExamination,
       medicalExaminationMap
-    )
+    ) || fileWithInfo.info.medicalExamination
 
     const checkingMessage = medicalExamination
       ? "success"
