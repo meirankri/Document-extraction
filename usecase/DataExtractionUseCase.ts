@@ -5,7 +5,6 @@ import {
   IDataExtractionRepository,
   PDF,
   PatientInfo,
-  UploadedFile,
   UploadedFiles,
 } from "../types/interfaces";
 

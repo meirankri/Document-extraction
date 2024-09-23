@@ -27,7 +27,7 @@ class DataVerificationUseCase {
 
       const resultInfo = { ...info };
 
-      const checkingMessage = await this.checkFields(
+      const { medicalExamination, checkingMessage } = await this.checkFields(
         {
           info: resultInfo,
           file,
@@ -54,7 +54,7 @@ class DataVerificationUseCase {
         }
       }
       filesAndData.push({
-        info: resultInfo,
+        info: {...resultInfo, medicalExamination: medicalExamination || ""},
         file,
         status: checkingMessage === "success" ? 1 : 2,
       });
@@ -66,8 +66,8 @@ class DataVerificationUseCase {
   private async checkFields(
     fileWithInfo: FileWithInfo,
     medicalExaminationMap: ObjectType
-  ): Promise<string> {
-    const filedsToCheck: [
+  ): Promise<{ medicalExamination: string | null, checkingMessage: string }> {
+    const fieldsToCheck: [
       "patientFirstname",
       "patientLastname",
       "medicalExamination",
@@ -79,23 +79,25 @@ class DataVerificationUseCase {
       "patientBirthDate",
     ];
 
-    for (let i = 0; i < filedsToCheck.length; i++) {
-      if (!fileWithInfo.info[filedsToCheck[i]]) {
-        return "Un champ manquant";
+    for (let i = 0; i < fieldsToCheck.length; i++) {
+      if (!fileWithInfo.info[fieldsToCheck[i]]) {
+        return { medicalExamination: "", checkingMessage: "Un champ manquant" };
       }
     }
     if (!isValidDate(fileWithInfo.info.patientBirthDate)) {
-      return "La date de naissance n'est pas une date";
+      return { medicalExamination: "", checkingMessage: "La date de naissance n'est pas une date" };
     }
 
     const medicalExamination = findMostSimilarExamination(
       fileWithInfo.info.medicalExamination,
       medicalExaminationMap
-    );
+    )
 
-    return medicalExamination
+    const checkingMessage = medicalExamination
       ? "success"
       : "L'examen médical n'a pas été trouvé";
+
+    return { medicalExamination, checkingMessage }; 
   }
 }
 
